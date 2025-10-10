@@ -1,3 +1,3 @@
 <x-filament::page>
-	{{-- Table is rendered by the page class --}}
+	{{ $this->table }}
 </x-filament::page>

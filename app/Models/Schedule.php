@@ -50,6 +50,10 @@ class Schedule extends Model
         'whatsapp_sent' => 'boolean',
         'email_sent_at' => 'datetime',
         'whatsapp_sent_at' => 'datetime',
+        'reschedule_requested' => 'boolean',
+        'reschedule_new_date' => 'date',
+        'reschedule_new_time' => 'datetime:H:i',
+        'reschedule_requested_at' => 'datetime',
     ];
 
     public function participant(): BelongsTo

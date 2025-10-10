@@ -12,7 +12,6 @@ class AdminNotifications extends Page
 	protected static ?int $navigationSort = 99;
 	protected static ?string $title = 'Notifikasi Admin';
 	protected static ?string $slug = 'notifications';
-
 	protected static string $view = 'filament.pages.admin-notifications';
 
 	public function mount(): void

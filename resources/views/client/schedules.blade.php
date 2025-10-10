@@ -65,7 +65,7 @@
 											@endif
 										</td>
 										<td>
-											@if($schedule->status === 'Terjadwal')
+									@if($schedule->status === 'Terjadwal' && !$schedule->participant_confirmed)
 												<form method="POST" action="{{ route('client.schedule.confirm', $schedule->id) }}" class="d-inline">
 													@csrf
 													<button type="submit" class="btn btn-sm btn-success">Konfirmasi Hadir</button>
@@ -88,6 +88,18 @@
 														</div>
 													</form>
 												</div>
+										<button class="btn btn-sm btn-outline-danger mt-2" type="button" data-bs-toggle="collapse" data-bs-target="#cancel-{{ $schedule->id }}">Batalkan Jadwal</button>
+										<div class="collapse mt-2" id="cancel-{{ $schedule->id }}">
+											<form method="POST" action="{{ route('client.schedule.cancel', $schedule->id) }}" class="row g-2">
+												@csrf
+												<div class="col-12">
+													<input type="text" name="cancel_reason" class="form-control" placeholder="Alasan pembatalan" required>
+												</div>
+												<div class="col-12">
+													<button type="submit" class="btn btn-sm btn-danger">Kirim Pembatalan</button>
+												</div>
+											</form>
+										</div>
 											@endif
 										</td>
 									</tr>
@@ -96,10 +108,8 @@
 							</table>
 						</div>
 
-						@if(method_exists($schedules, 'links'))
-							<div class="d-flex justify-content-center mt-4">
-								{{ $schedules->links() }}
-							</div>
+						@if(method_exists($schedules, 'links') && $schedules->hasPages())
+							{{ $schedules->links() }}
 						@endif
 					@else
 						<div class="text-center py-5">

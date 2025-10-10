@@ -35,6 +35,7 @@ Route::prefix('client')->middleware(['auth'])->group(function () {
     // Konfirmasi & Reschedule oleh peserta
     Route::post('/schedule/{id}/confirm', [ClientController::class, 'confirmAttendance'])->name('client.schedule.confirm');
     Route::post('/schedule/{id}/reschedule', [ClientController::class, 'requestReschedule'])->name('client.schedule.reschedule');
+    Route::post('/schedule/{id}/cancel', [ClientController::class, 'cancelSchedule'])->name('client.schedule.cancel');
 });
 
 // Reports download (Filament Admin)

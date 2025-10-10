@@ -41,7 +41,14 @@ class ScheduleResource extends Resource
                 Section::make('Participant Information')
                     ->schema([
                         Select::make('participant_id')
-                            ->relationship('participant', 'nama_lengkap')
+                            ->relationship(
+                                'participant',
+                                'nama_lengkap',
+                                fn ($query, $search) => $query
+                                    ->where('nama_lengkap', 'like', "%$search%")
+                                    ->orWhere('nik_ktp', 'like', "%$search%")
+                                    ->orWhere('nrk_pegawai', 'like', "%$search%")
+                            )
                             ->searchable()
                             ->preload()
                             ->required()
@@ -169,6 +176,9 @@ class ScheduleResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(function (Builder $query) {
+                $query->with(['participant']);
+            })
             ->columns([
                 TextColumn::make('participant.nama_lengkap')
                     ->label('Participant Name')
@@ -272,35 +282,40 @@ class ScheduleResource extends Resource
                 Tables\Actions\DeleteAction::make(),
                 
                 Action::make('send_invitation')
-                    ->label('Send Invitation')
+                    ->label('Send Email')
                     ->icon('heroicon-o-envelope')
                     ->color('success')
                     ->requiresConfirmation()
                     ->action(function (Schedule $record) {
-                        // Send email invitation
+                        // Send email invitation using template from Settings
                         try {
                             $emailService = new \App\Services\EmailService();
-                            $emailService->sendMcuInvitation($record);
                             
-                            $record->update([
-                                'email_sent' => true,
-                                'email_sent_at' => now(),
-                            ]);
+                            $success = $emailService->sendMcuInvitation($record);
                             
-                            \Filament\Notifications\Notification::make()
-                                ->title('Invitation sent successfully')
-                                ->success()
-                                ->send();
+                            if ($success) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Email sent successfully!')
+                                    ->body('Using email template from Settings')
+                                    ->success()
+                                    ->send();
+                            } else {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Failed to send email')
+                                    ->body('Check the logs for more details')
+                                    ->danger()
+                                    ->send();
+                            }
                         } catch (\Exception $e) {
                             \Filament\Notifications\Notification::make()
-                                ->title('Failed to send invitation')
+                                ->title('Failed to send email')
                                 ->body($e->getMessage())
                                 ->danger()
                                 ->send();
                         }
                     })
                     ->visible(fn (Schedule $record): bool => !$record->email_sent),
-                
+
                 Action::make('send_whatsapp')
                     ->label('Send WhatsApp')
                     ->icon('heroicon-o-chat-bubble-left-right')
@@ -336,7 +351,7 @@ class ScheduleResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                     
                     Action::make('send_bulk_invitations')
-                        ->label('Send Bulk Invitations')
+                        ->label('Send Email & WhatsApp')
                         ->icon('heroicon-o-envelope')
                         ->color('success')
                         ->requiresConfirmation()
@@ -348,19 +363,11 @@ class ScheduleResource extends Resource
                             
                             foreach ($records as $record) {
                                 try {
-                                    // Send email
+                                    // Send email using template from Settings
                                     $emailService->sendMcuInvitation($record);
-                                    $record->update([
-                                        'email_sent' => true,
-                                        'email_sent_at' => now(),
-                                    ]);
                                     
-                                    // Send WhatsApp
+                                    // Send WhatsApp using template from Settings
                                     $whatsappService->sendMcuInvitation($record);
-                                    $record->update([
-                                        'whatsapp_sent' => true,
-                                        'whatsapp_sent_at' => now(),
-                                    ]);
                                     
                                     $successCount++;
                                 } catch (\Exception $e) {

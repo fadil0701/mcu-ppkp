@@ -15,13 +15,23 @@ class DailyQueueWidget extends Widget
 	public function getViewData(): array
 	{
 		$today = now()->toDateString();
-        return [
-            // Total antrian = hanya yang masih Terjadwal (belum selesai / batal / ditolak)
-            'total' => Schedule::whereDate('tanggal_pemeriksaan', $today)->where('status', 'Terjadwal')->count(),
-            'terjadwal' => Schedule::whereDate('tanggal_pemeriksaan', $today)->where('status', 'Terjadwal')->count(),
-			'selesai' => Schedule::whereDate('tanggal_pemeriksaan', $today)->where('status', 'Selesai')->count(),
-			'ditolak' => Schedule::whereDate('tanggal_pemeriksaan', $today)->where('status', 'Ditolak')->count(),
-			'batal' => Schedule::whereDate('tanggal_pemeriksaan', $today)->where('status', 'Batal')->count(),
+		$counts = Schedule::selectRaw("status, COUNT(*) as aggregate")
+			->whereDate('tanggal_pemeriksaan', $today)
+			->groupBy('status')
+			->pluck('aggregate', 'status');
+
+		$terjadwal = (int) ($counts['Terjadwal'] ?? 0);
+		$selesai = (int) ($counts['Selesai'] ?? 0);
+		$ditolak = (int) ($counts['Ditolak'] ?? 0);
+		$batal = (int) ($counts['Batal'] ?? 0);
+
+		return [
+			// Total antrian = hanya yang masih Terjadwal (belum selesai / batal / ditolak)
+			'total' => $terjadwal,
+			'terjadwal' => $terjadwal,
+			'selesai' => $selesai,
+			'ditolak' => $ditolak,
+			'batal' => $batal,
 		];
 	}
 }

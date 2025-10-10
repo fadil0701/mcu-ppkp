@@ -28,6 +28,7 @@ class Dashboard extends BaseDashboard
             McuChart::class,
             HealthStatusChart::class,
             SkpdStats::class,
+            \App\Filament\Widgets\ConfirmedAttendanceTable::class,
         ];
     }
 

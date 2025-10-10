@@ -18,6 +18,9 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Response;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ParticipantsExport;
+use App\Exports\SchedulesExport;
+use App\Exports\McuResultsExport;
+use App\Exports\DiagnosesExport;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class Reports extends Page
@@ -232,74 +235,46 @@ class Reports extends Page
 
     public function download(string $type)
     {
-        $data = $this->form->getState();
-
-        // Participants to Excel
-        if ($type === 'participants') {
-            return Excel::download(new ParticipantsExport([
-                'skpd' => $data['skpd'] ?? null,
-                'status_pegawai' => $data['status_pegawai'] ?? null,
-            ]), 'participants_report.xlsx');
-        }
-
-        // Fallback: keep CSV for others until Excel exporters are added
-        $filename = match ($type) {
-            'schedules' => 'schedules_report.csv',
-            'mcu' => 'mcu_results_report.csv',
-            'diagnoses' => 'diagnoses_report.csv',
-            default => 'report.csv',
-        };
-
-        $rows = [];
-        if ($type === 'schedules') {
-            $query = Schedule::query();
-            if (!empty($data['start_date'])) $query->whereDate('tanggal_pemeriksaan', '>=', $data['start_date']);
-            if (!empty($data['end_date'])) $query->whereDate('tanggal_pemeriksaan', '<=', $data['end_date']);
-            if (!empty($data['skpd'])) $query->whereHas('participant', fn($q) => $q->where('skpd', $data['skpd']));
-            $rows[] = ['Nama', 'SKPD', 'Tanggal', 'Jam', 'Lokasi', 'Status'];
-            foreach ($query->with('participant')->get() as $s) {
-                $rows[] = [
-                    $s->participant->nama_lengkap ?? '-',
-                    $s->participant->skpd ?? '-',
-                    optional($s->tanggal_pemeriksaan)->format('Y-m-d'),
-                    optional($s->jam_pemeriksaan)->format('H:i'),
-                    $s->lokasi_pemeriksaan,
-                    $s->status,
+        switch ($type) {
+            case 'participants':
+                $filters = [
+                    'start_date' => request('start_date'),
+                    'end_date' => request('end_date'),
+                    'skpd' => request('skpd'),
+                    'status_pegawai' => request('status_pegawai'),
                 ];
-            }
-        } elseif ($type === 'mcu') {
-            $query = McuResult::query();
-            if (!empty($data['start_date'])) $query->whereDate('tanggal_pemeriksaan', '>=', $data['start_date']);
-            if (!empty($data['end_date'])) $query->whereDate('tanggal_pemeriksaan', '<=', $data['end_date']);
-            if (!empty($data['skpd'])) $query->whereHas('participant', fn($q) => $q->where('skpd', $data['skpd']));
-            $rows[] = ['Nama', 'SKPD', 'Tanggal', 'Status Kesehatan', 'Diagnosis'];
-            foreach ($query->with('participant')->get() as $r) {
-                $rows[] = [
-                    $r->participant->nama_lengkap ?? '-',
-                    $r->participant->skpd ?? '-',
-                    optional($r->tanggal_pemeriksaan)->format('Y-m-d'),
-                    $r->status_kesehatan,
-                    $r->diagnosis,
+                $filename = 'participants-' . now()->format('Ymd_His') . '.xlsx';
+                return Excel::download(new ParticipantsExport($filters), $filename);
+
+            case 'schedules':
+                $filters = [
+                    'start_date' => request('start_date'),
+                    'end_date' => request('end_date'),
+                    'skpd' => request('skpd'),
                 ];
-            }
-        } elseif ($type === 'diagnoses') {
-            $query = McuResult::query()->whereNotNull('diagnosis');
-            if (!empty($data['start_date'])) $query->whereDate('tanggal_pemeriksaan', '>=', $data['start_date']);
-            if (!empty($data['end_date'])) $query->whereDate('tanggal_pemeriksaan', '<=', $data['end_date']);
-            $rows[] = ['Diagnosis', 'Jumlah'];
-            foreach ($query->get()->groupBy('diagnosis') as $diag => $items) {
-                $rows[] = [$diag, $items->count()];
-            }
-        }
+                $filename = 'schedules-' . now()->format('Ymd_His') . '.xlsx';
+                return Excel::download(new SchedulesExport($filters), $filename);
 
-        $csv = '';
-        foreach ($rows as $row) {
-            $csv .= implode(',', array_map(fn($v) => '"' . str_replace('"', '""', (string) $v) . '"', $row)) . "\n";
-        }
+            case 'mcu':
+                $filters = [
+                    'start_date' => request('start_date'),
+                    'end_date' => request('end_date'),
+                    'skpd' => request('skpd'),
+                ];
+                $filename = 'mcu-results-' . now()->format('Ymd_His') . '.xlsx';
+                return Excel::download(new McuResultsExport($filters), $filename);
 
-        return response($csv, 200, [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ]);
+            case 'diagnoses':
+                $filters = [
+                    'start_date' => request('start_date'),
+                    'end_date' => request('end_date'),
+                    'skpd' => request('skpd'),
+                ];
+                $filename = 'diagnoses-' . now()->format('Ymd_His') . '.xlsx';
+                return Excel::download(new DiagnosesExport($filters), $filename);
+
+            default:
+                abort(404, 'Report type not supported');
+        }
     }
 }

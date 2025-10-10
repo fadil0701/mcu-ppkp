@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CKEditor 5 Alignment Test</title>
+    <link rel="stylesheet" href="/css/ckeditor5-filament.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .debug-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        #editor {
+            min-height: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 CKEditor 5 Alignment Test Page</h1>
+        
+        <div class="test-section">
+            <h3>📊 Debug Information</h3>
+            <div class="debug-info">
+                <div>CKEditor 5 Build: Classic</div>
+                <div>Build Size: 1,342,867 bytes</div>
+                <div>Expected Features: Alignment, Images, Tables, Lists, etc.</div>
+                <div>Test Time: 2025-10-07 04:19:22</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 CKEditor 5 Toolbar Test</h3>
+            <p>This editor should show all toolbar buttons including alignment:</p>
+            
+            <div id="editor">
+                <h2>Test Document</h2>
+                <p>This is a test paragraph. Try selecting this text and using the alignment buttons in the toolbar above.</p>
+                <p>Look for the alignment button (usually shows as lines with different alignments).</p>
+                <p>If you see alignment options, the integration is working correctly!</p>
+            </div>
+            
+            <div id="status"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎮 Test Instructions</h3>
+            <ol>
+                <li>Look at the toolbar above the editor</li>
+                <li>Find the alignment button (should show alignment options)</li>
+                <li>Select some text in the editor</li>
+                <li>Click on different alignment options</li>
+                <li>Check if the text alignment changes</li>
+                <li>Open browser console (F12) to see any error messages</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>🐛 Console Debug</h3>
+            <p>Open browser console (F12) and look for:</p>
+            <ul>
+                <li>CKEditor 5 loading messages</li>
+                <li>Any error messages</li>
+                <li>Plugin loading confirmations</li>
+                <li>Toolbar initialization messages</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="/vendor/ckeditor5/classic/ckeditor.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const statusDiv = document.getElementById("status");
+            
+            function showStatus(message, type) {
+                statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            }
+            
+            function log(message) {
+                console.log("CKEditor 5 Test:", message);
+            }
+            
+            log("Starting CKEditor 5 initialization...");
+            showStatus("Loading CKEditor 5...", "warning");
+            
+            // Check if ClassicEditor is available
+            if (typeof ClassicEditor === "undefined") {
+                showStatus("❌ Error: ClassicEditor not found. Check if ckeditor.js loaded correctly.", "error");
+                log("ERROR: ClassicEditor is undefined");
+                return;
+            }
+            
+            log("ClassicEditor found, creating editor instance...");
+            
+            // Create editor with explicit alignment configuration
+            ClassicEditor.create(document.querySelector("#editor"), {
+                toolbar: {
+                    items: [
+                        "heading",
+                        "|",
+                        "bold",
+                        "italic",
+                        "underline",
+                        "strikethrough",
+                        "|",
+                        "fontSize",
+                        "fontFamily",
+                        "fontColor",
+                        "fontBackgroundColor",
+                        "|",
+                        "alignment",
+                        "|",
+                        "numberedList",
+                        "bulletedList",
+                        "|",
+                        "outdent",
+                        "indent",
+                        "|",
+                        "imageUpload",
+                        "link",
+                        "blockQuote",
+                        "codeBlock",
+                        "insertTable",
+                        "horizontalLine",
+                        "specialCharacters",
+                        "sourceEditing",
+                        "|",
+                        "undo",
+                        "redo"
+                    ]
+                },
+                alignment: {
+                    options: ["left", "center", "right", "justify"]
+                },
+                image: {
+                    toolbar: [
+                        "imageTextAlternative",
+                        "imageStyle:full",
+                        "imageStyle:side"
+                    ]
+                },
+                table: {
+                    contentToolbar: [
+                        "tableColumn",
+                        "tableRow",
+                        "mergeTableCells"
+                    ]
+                },
+                language: "en",
+                placeholder: "Start typing your content here..."
+            })
+            .then(editor => {
+                log("CKEditor 5 initialized successfully");
+                log("Editor instance:", editor);
+                log("Available plugins:", Object.keys(editor.plugins._availablePlugins || {}));
+                
+                // Check if alignment plugin is available
+                if (editor.plugins.get("Alignment")) {
+                    showStatus("✅ Success: CKEditor 5 loaded with alignment support!", "success");
+                    log("Alignment plugin found and loaded");
+                } else {
+                    showStatus("⚠️ Warning: CKEditor 5 loaded but alignment plugin not found", "warning");
+                    log("Alignment plugin not found in available plugins");
+                }
+                
+                // Log toolbar items
+                const toolbarItems = editor.ui.componentFactory.names();
+                log("Available toolbar items:", toolbarItems);
+                
+                if (toolbarItems.includes("alignment")) {
+                    log("✅ Alignment toolbar item is available");
+                } else {
+                    log("❌ Alignment toolbar item not found in available items");
+                }
+            })
+            .catch(error => {
+                log("ERROR creating CKEditor 5:", error);
+                showStatus("❌ Error creating CKEditor 5: " + error.message, "error");
+            });
+        });
+    </script>
+</body>
+</html>

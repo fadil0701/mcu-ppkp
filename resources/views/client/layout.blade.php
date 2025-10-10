@@ -147,6 +147,59 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
         }
+
+        /* Custom Pagination Styles */
+        .pagination {
+            margin-bottom: 0;
+        }
+        
+        .pagination .page-item {
+            margin: 0 2px;
+        }
+        
+        .pagination .page-link {
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            color: #0d6efd;
+            padding: 0.375rem 0.75rem;
+        }
+        
+        .pagination .page-item.active .page-link {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: white;
+        }
+        
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #fff;
+            border-color: #dee2e6;
+        }
+        
+        /* Hide any stray arrow icons that might appear */
+        .pagination .page-link::before,
+        .pagination .page-link::after {
+            display: none !important;
+        }
+        
+        /* Ensure no extra icons appear in pagination */
+        .pagination i[class*="arrow"],
+        .pagination i[class*="chevron"] {
+            display: none !important;
+        }
+
+        /* Custom button pagination styles */
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            border-radius: 0.375rem;
+        }
+
+        /* Results info styling */
+        .small.text-muted {
+            font-size: 0.875rem;
+            color: #6c757d !important;
+        }
         
         .card:hover {
             transform: translateY(-2px);
@@ -323,7 +376,10 @@
                     <button class="sidebar-toggle me-3">
                         <i class="fas fa-bars"></i>
                     </button>
-                    <h4 class="mb-0">@yield('page-title', 'Dashboard')</h4>
+                    <h3 class="mb-0"><b>@yield('page-title', 'Dashboard')</b></h3>
+                    <span class="mx-3">
+                    <h3 class="mb-0"><b>Peserta</b></h3>
+                    </span>
                 </div>
                 
                 <div class="user-dropdown">

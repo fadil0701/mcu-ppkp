@@ -11,6 +11,19 @@ class McuResult extends Model
 {
     use HasFactory;
 
+    public function getRekomendasiDokterSpesialisAttribute(): string
+    {
+        if (is_array($this->specialist_doctor_ids) && count($this->specialist_doctor_ids)) {
+            // Cache the result to avoid repeated queries
+            $cacheKey = 'specialist_doctors_' . md5(implode(',', $this->specialist_doctor_ids));
+            return cache()->remember($cacheKey, 3600, function () {
+                $names = \App\Models\SpecialistDoctor::whereIn('id', $this->specialist_doctor_ids)->pluck('name')->toArray();
+                return implode(', ', $names);
+            });
+        }
+        return '';
+    }
+
     protected $fillable = [
         'participant_id',
         'schedule_id',
@@ -20,6 +33,7 @@ class McuResult extends Model
         'hasil_pemeriksaan',
         'status_kesehatan',
         'rekomendasi',
+        'specialist_doctor_ids',
         'file_hasil',
         'file_hasil_files',
         'is_downloaded',
@@ -27,12 +41,19 @@ class McuResult extends Model
         'uploaded_by',
     ];
 
+    public function specialistDoctors()
+    {
+        return $this->belongsToMany(\App\Models\SpecialistDoctor::class, null, null, null, 'id', 'id')
+            ->whereIn('id', $this->specialist_doctor_ids ?? []);
+    }
+
     protected $casts = [
         'tanggal_pemeriksaan' => 'date',
         'is_downloaded' => 'boolean',
         'downloaded_at' => 'datetime',
         'file_hasil_files' => 'array',
         'diagnosis_list' => 'array',
+        'specialist_doctor_ids' => 'array',
     ];
 
     public function participant(): BelongsTo
@@ -41,7 +62,7 @@ class McuResult extends Model
     }
 
     public function schedule(): BelongsTo
-    {
+    {   
         return $this->belongsTo(Schedule::class);
     }
 

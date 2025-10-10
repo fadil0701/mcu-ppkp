@@ -17,6 +17,14 @@ class ParticipantsExport implements FromCollection, WithHeadings, WithMapping, S
     {
         $query = Participant::query();
 
+        if (!empty($this->filters['start_date'])) {
+            $query->whereDate('tanggal_mcu_terakhir', '>=', $this->filters['start_date']);
+        }
+
+        if (!empty($this->filters['end_date'])) {
+            $query->whereDate('tanggal_mcu_terakhir', '<=', $this->filters['end_date']);
+        }
+
         if (!empty($this->filters['skpd'])) {
             $query->where('skpd', $this->filters['skpd']);
         }
@@ -56,6 +64,7 @@ class ParticipantsExport implements FromCollection, WithHeadings, WithMapping, S
         ];
     }
 }
+
 
 
 

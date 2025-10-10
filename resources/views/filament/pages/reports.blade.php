@@ -106,11 +106,25 @@
                 </button>
             </div>
 
+            @php
+                $start = $this->data['start_date'] ?? null;
+                if ($start instanceof \DateTimeInterface) { $start = $start->format('Y-m-d'); }
+                $end = $this->data['end_date'] ?? null;
+                if ($end instanceof \DateTimeInterface) { $end = $end->format('Y-m-d'); }
+                $filters = [
+                    'start_date' => $start,
+                    'end_date' => $end,
+                    'skpd' => $this->data['skpd'] ?? null,
+                    'status_pegawai' => $this->data['status_pegawai'] ?? null,
+                ];
+                $query = http_build_query(array_filter($filters, fn($v) => filled($v)));
+            @endphp
+
             <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                <a href="{{ route('filament.admin.pages.reports.download', 'participants') }}" class="bg-blue-100 hover:bg-blue-200 text-blue-700 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 dark:text-blue-300 px-4 py-2 rounded-md text-center">Download Participants (CSV)</a>
-                <a href="{{ route('filament.admin.pages.reports.download', 'schedules') }}" class="bg-green-100 hover:bg-green-200 text-green-700 dark:bg-green-900/40 dark:hover:bg-green-900/60 dark:text-green-300 px-4 py-2 rounded-md text-center">Download Schedules (CSV)</a>
-                <a href="{{ route('filament.admin.pages.reports.download', 'mcu') }}" class="bg-yellow-100 hover:bg-yellow-200 text-yellow-700 dark:bg-yellow-900/40 dark:hover:bg-yellow-900/60 dark:text-yellow-300 px-4 py-2 rounded-md text-center">Download MCU Results (CSV)</a>
-                <a href="{{ route('filament.admin.pages.reports.download', 'diagnoses') }}" class="bg-red-100 hover:bg-red-200 text-red-700 dark:bg-red-900/40 dark:hover:bg-red-900/60 dark:text-red-300 px-4 py-2 rounded-md text-center">Download Diagnoses (CSV)</a>
+                <a href="{{ route('filament.admin.pages.reports.download', 'participants') . ($query ? ('?' . $query) : '') }}" class="bg-blue-100 hover:bg-blue-200 text-blue-700 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 dark:text-blue-300 px-4 py-2 rounded-md text-center">Download Participants</a>
+                <a href="{{ route('filament.admin.pages.reports.download', 'schedules') . ($query ? ('?' . $query) : '') }}" class="bg-green-100 hover:bg-green-200 text-green-700 dark:bg-green-900/40 dark:hover:bg-green-900/60 dark:text-green-300 px-4 py-2 rounded-md text-center">Download Schedules</a>
+                <a href="{{ route('filament.admin.pages.reports.download', 'mcu') . ($query ? ('?' . $query) : '') }}" class="bg-yellow-100 hover:bg-yellow-200 text-yellow-700 dark:bg-yellow-900/40 dark:hover:bg-yellow-900/60 dark:text-yellow-300 px-4 py-2 rounded-md text-center">Download MCU Results</a>
+                <a href="{{ route('filament.admin.pages.reports.download', 'diagnoses') . ($query ? ('?' . $query) : '') }}" class="bg-red-100 hover:bg-red-200 text-red-700 dark:bg-red-900/40 dark:hover:bg-red-900/60 dark:text-red-300 px-4 py-2 rounded-md text-center">Download Diagnoses</a>
             </div>
         </div>
 

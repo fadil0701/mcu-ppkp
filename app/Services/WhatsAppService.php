@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Log;
 
 class WhatsAppService
 {
+    private function getProvider(): string
+    {
+        return Setting::getValue('whatsapp_provider', 'fonnte');
+    }
+
     public function sendMcuInvitation(Schedule $schedule): bool
     {
         try {
@@ -17,38 +22,148 @@ class WhatsAppService
             
             $token = $whatsappSettings['whatsapp_token'] ?? '';
             $instanceId = $whatsappSettings['whatsapp_instance_id'] ?? '';
+            $provider = $this->getProvider();
             
-            if (empty($token) || empty($instanceId)) {
-                Log::error('WhatsApp settings not configured');
+            if (empty($token)) {
+                Log::error('WhatsApp token not configured');
                 return false;
             }
 
             // Get WhatsApp template
             $template = Setting::getValue('whatsapp_invitation_template', 'Halo {nama_lengkap}, Anda diundang untuk mengikuti Medical Check Up pada tanggal {tanggal_pemeriksaan} pukul {jam_pemeriksaan} di {lokasi_pemeriksaan}.');
 
-            // Replace placeholders
-            $message = str_replace([
-                '{nama_lengkap}',
-                '{tanggal_pemeriksaan}',
-                '{jam_pemeriksaan}',
-                '{lokasi_pemeriksaan}',
-            ], [
-                $schedule->nama_lengkap,
-                $schedule->tanggal_pemeriksaan->format('d/m/Y'),
-                $schedule->jam_pemeriksaan->format('H:i'),
-                $schedule->lokasi_pemeriksaan,
-            ], $template);
+            // Prepare template data
+            $templateData = $this->prepareTemplateData($schedule);
+            
+            // Render template (replace variables)
+            $message = $this->renderTemplate($template, $templateData);
 
             // Clean phone number
             $phoneNumber = $this->cleanPhoneNumber($schedule->no_telp);
 
-            // Send WhatsApp message
-            $response = Http::withHeaders([
+            // Send WhatsApp message based on provider
+            $result = false;
+            
+            switch ($provider) {
+                case 'fonnte':
+                    $result = $this->sendViaFonnte($token, $phoneNumber, $message);
+                    break;
+                    
+                case 'wablas':
+                    $result = $this->sendViaWablas($token, $phoneNumber, $message);
+                    break;
+                    
+                case 'meta':
+                    if (empty($instanceId)) {
+                        Log::error('WhatsApp instance ID not configured for Meta provider');
+                        return false;
+                    }
+                    $result = $this->sendViaMeta($token, $instanceId, $phoneNumber, $message);
+                    break;
+                    
+                default:
+                    Log::error('Unknown WhatsApp provider: ' . $provider);
+                    return false;
+            }
+
+            if ($result) {
+                // Update schedule
+                $schedule->update([
+                    'whatsapp_sent' => true,
+                    'whatsapp_sent_at' => now(),
+                ]);
+
+                Log::info("WhatsApp sent successfully to {$phoneNumber} via {$provider}");
+                return true;
+            } else {
+                Log::error("Failed to send WhatsApp to {$phoneNumber} via {$provider}");
+                return false;
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send WhatsApp invitation: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function sendViaFonnte(string $token, string $phoneNumber, string $message): bool
+    {
+        try {
+            Log::info("Sending WhatsApp via Fonnte to {$phoneNumber}");
+            
+            $response = Http::withOptions([
+                'verify' => false, // Disable SSL verification for local development
+            ])->withHeaders([
+                'Authorization' => $token,
+            ])->post('https://api.fonnte.com/send', [
+                'target' => $phoneNumber,
+                'message' => $message,
+                'countryCode' => '62',
+            ]);
+
+            $responseData = $response->json();
+            Log::info('Fonnte API response: ' . json_encode($responseData));
+
+            if ($response->successful()) {
+                // Check if Fonnte returned success
+                // Fonnte returns: {"status": true, "message": "Message sent", ...}
+                if (isset($responseData['status']) && $responseData['status'] == true) {
+                    return true;
+                }
+                
+                // If status is not true, log the reason
+                $reason = $responseData['reason'] ?? 'Unknown error';
+                Log::error("Fonnte API returned false status: {$reason}");
+                return false;
+            } else {
+                Log::error('Fonnte API HTTP error: ' . $response->status() . ' - ' . $response->body());
+                return false;
+            }
+        } catch (\Exception $e) {
+            Log::error('Fonnte exception: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function sendViaWablas(string $token, string $phoneNumber, string $message): bool
+    {
+        try {
+            Log::info("Sending WhatsApp via Wablas to {$phoneNumber}");
+            
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
+                'Authorization' => $token,
+            ])->post('https://console.wablas.com/api/send-message', [
+                'phone' => $phoneNumber,
+                'message' => $message,
+            ]);
+
+            if ($response->successful()) {
+                Log::info('Wablas API response: ' . $response->body());
+                return true;
+            } else {
+                Log::error('Wablas API error: ' . $response->body());
+                return false;
+            }
+        } catch (\Exception $e) {
+            Log::error('Wablas exception: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function sendViaMeta(string $token, string $phoneNumberId, string $recipientPhone, string $message): bool
+    {
+        try {
+            Log::info("Sending WhatsApp via Meta to {$recipientPhone}");
+            
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
                 'Authorization' => 'Bearer ' . $token,
                 'Content-Type' => 'application/json',
-            ])->post("https://api.whatsapp.com/v1/{$instanceId}/messages", [
+            ])->post("https://graph.facebook.com/v18.0/{$phoneNumberId}/messages", [
                 'messaging_product' => 'whatsapp',
-                'to' => $phoneNumber,
+                'to' => $recipientPhone,
                 'type' => 'text',
                 'text' => [
                     'body' => $message,
@@ -56,19 +171,14 @@ class WhatsAppService
             ]);
 
             if ($response->successful()) {
-                // Update schedule
-                $schedule->update([
-                    'whatsapp_sent' => true,
-                    'whatsapp_sent_at' => now(),
-                ]);
-
+                Log::info('Meta API response: ' . $response->body());
                 return true;
             } else {
-                Log::error('WhatsApp API error: ' . $response->body());
+                Log::error('Meta API error: ' . $response->body());
                 return false;
             }
         } catch (\Exception $e) {
-            Log::error('Failed to send WhatsApp invitation: ' . $e->getMessage());
+            Log::error('Meta exception: ' . $e->getMessage());
             return false;
         }
     }
@@ -112,5 +222,42 @@ class WhatsAppService
         }
         
         return $phone;
+    }
+
+    /**
+     * Prepare template data from schedule
+     */
+    private function prepareTemplateData(Schedule $schedule): array
+    {
+        return [
+            'nama_lengkap' => $schedule->nama_lengkap,
+            'nik_ktp' => $schedule->nik_ktp,
+            'nrk_pegawai' => $schedule->nrk_pegawai,
+            'tanggal_lahir' => $schedule->tanggal_lahir ? $schedule->tanggal_lahir->format('d/m/Y') : '-',
+            'jenis_kelamin' => $schedule->jenis_kelamin === 'L' ? 'Laki-Laki' : 'Perempuan',
+            'tanggal_pemeriksaan' => $schedule->tanggal_pemeriksaan ? $schedule->tanggal_pemeriksaan->format('d/m/Y') : '-',
+            'hari_pemeriksaan' => $schedule->tanggal_pemeriksaan ? $schedule->tanggal_pemeriksaan->locale('id')->dayName : '-',
+            'jam_pemeriksaan' => $schedule->jam_pemeriksaan ? $schedule->jam_pemeriksaan->format('H:i') : '-',
+            'lokasi_pemeriksaan' => $schedule->lokasi_pemeriksaan,
+            'queue_number' => $schedule->queue_number,
+            'skpd' => $schedule->skpd,
+            'ukpd' => $schedule->ukpd,
+            'no_telp' => $schedule->no_telp,
+            'email' => $schedule->email,
+        ];
+    }
+
+    /**
+     * Render template by replacing variables
+     */
+    private function renderTemplate(string $template, array $data): string
+    {
+        $rendered = $template;
+        
+        foreach ($data as $key => $value) {
+            $rendered = str_replace('{' . $key . '}', $value, $rendered);
+        }
+        
+        return $rendered;
     }
 }

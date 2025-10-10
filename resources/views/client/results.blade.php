@@ -24,7 +24,7 @@
                                         <th>Diagnosis</th>
                                         <th>Status Kesehatan</th>
                                         <th>File Hasil</th>
-                                        <th>Download Status</th>
+                                        <!-- <th>Download Status</th> -->
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
@@ -61,7 +61,7 @@
                                                 </span>
                                             @endif
                                         </td>
-                                        <td>
+                                        <!-- <td>
                                             @if($result->is_downloaded)
                                                 <span class="badge bg-info">
                                                     <i class="fas fa-download"></i> Sudah Download
@@ -75,17 +75,17 @@
                                                     <i class="fas fa-clock"></i> Belum Download
                                                 </span>
                                             @endif
-                                        </td>
+                                        </td> -->
                                         <td>
                                             @if($result->hasFile())
-                                                <a href="{{ route('client.results.download', $result->id) }}" 
+                                                <a href="{{ route('client.results.downloadAll', ['result' => $result->id]) }}" 
                                                    class="btn btn-sm btn-primary">
                                                     <i class="fas fa-download"></i> Download
                                                 </a>
-                                                <a href="{{ route('client.results.downloadAll', $result->id) }}"
+                                                <!-- <a href="{{ route('client.results.downloadAll', $result->id) }}"
                                                    class="btn btn-sm btn-outline-primary ms-1">
                                                     <i class="fas fa-file-zipper"></i> Download Semua
-                                                </a>
+                                                </a> -->
                                             @else
                                                 <button class="btn btn-sm btn-secondary" disabled>
                                                     <i class="fas fa-times"></i> Tidak Tersedia
@@ -99,9 +99,7 @@
                         </div>
 
                         @if($mcuResults->hasPages())
-                            <div class="d-flex justify-content-center mt-4">
-                                {{ $mcuResults->links() }}
-                            </div>
+                            {{ $mcuResults->links() }}
                         @endif
                     @else
                         <div class="text-center py-5">
@@ -186,6 +184,16 @@
                                         {{ $latestResult->rekomendasi }}
                                     @else
                                         <em>Tidak ada rekomendasi khusus</em>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Rekomendasi Dokter Spesialis:</h6>
+                                <div class="alert alert-success">
+                                    @if($latestResult->rekomendasi_dokter_spesialis)
+                                        {{ $latestResult->rekomendasi_dokter_spesialis }}
+                                    @else
+                                        <em>Tidak ada rekomendasi dokter spesialis</em>
                                     @endif
                                 </div>
                             </div>

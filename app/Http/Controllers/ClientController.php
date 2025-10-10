@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Log;
+
 use App\Models\Participant;
 use App\Models\Schedule;
 use App\Models\McuResult;
@@ -23,10 +25,12 @@ class ClientController extends Controller
 		$participant = null;
 		$schedules = collect();
 		$mcuResults = collect();
-		// Total antrian harian yang aktif (belum selesai/batal/ditolak)
-		$todayQueueTotal = Schedule::whereDate('tanggal_pemeriksaan', now()->toDateString())
-			->where('status', 'Terjadwal')
-			->count();
+		// Total antrian harian yang aktif (belum selesai/batal/ditolak) - cached for 5 minutes
+		$todayQueueTotal = cache()->remember('today_queue_total_' . now()->toDateString(), 300, function () {
+			return Schedule::whereDate('tanggal_pemeriksaan', now()->toDateString())
+				->where('status', 'Terjadwal')
+				->count();
+		});
 
 		if ($user->nik_ktp) {
 			$participant = Participant::where('nik_ktp', $user->nik_ktp)->first();
@@ -94,13 +98,20 @@ class ClientController extends Controller
 			'new_time' => ['required', 'date_format:H:i'],
 			'reason' => ['required', 'string', 'max:1000'],
 		]);
-		$schedule->update([
+
+		$updateResult = $schedule->update([
 			'reschedule_requested' => true,
 			'reschedule_new_date' => $request->new_date,
 			'reschedule_new_time' => $request->new_time,
 			'reschedule_reason' => $request->reason,
 			'reschedule_requested_at' => now(),
 		]);
+
+		// \Log::info('Reschedule request update', [
+		// 	'schedule_id' => $schedule->id,
+		// 	'update_result' => $updateResult,
+		// 	'attributes' => $schedule->getAttributes(),
+		// ]);
 
 		// Notify admins
 		User::query()->whereIn('role', ['admin','super_admin'])->get()->each(function (User $admin) use ($schedule) {
@@ -116,6 +127,38 @@ class ClientController extends Controller
 
 		return back()->with('success', 'Permintaan reschedule telah dikirim ke admin.');
 	}
+
+    public function cancelSchedule(Request $request, $id)
+    {
+        $user = Auth::user();
+        $schedule = Schedule::findOrFail($id);
+        if (!($user->nik_ktp && $schedule->nik_ktp === $user->nik_ktp)) {
+            abort(403);
+        }
+
+        $request->validate([
+            'cancel_reason' => ['required', 'string', 'max:1000'],
+        ]);
+
+        $schedule->update([
+            'status' => 'Batal',
+            'catatan' => trim(($schedule->catatan ? $schedule->catatan."\n" : '') . 'Pembatalan oleh peserta: ' . $request->cancel_reason),
+        ]);
+
+        // Notify admins about cancellation
+        User::query()->whereIn('role', ['admin','super_admin'])->get()->each(function (User $admin) use ($schedule, $request) {
+            $admin->notify(new NewRegistrationNotification('batal', [
+                'type' => 'cancellation',
+                'participant_name' => $schedule->nama_lengkap,
+                'nik_ktp' => $schedule->nik_ktp,
+                'tanggal_pemeriksaan' => $schedule->tanggal_pemeriksaan?->format('Y-m-d'),
+                'jam_pemeriksaan' => $schedule->jam_pemeriksaan?->format('H:i'),
+                'reason' => $request->cancel_reason,
+            ]));
+        });
+
+        return back()->with('success', 'Jadwal MCU berhasil dibatalkan.');
+    }
 
 	public function results()
 	{

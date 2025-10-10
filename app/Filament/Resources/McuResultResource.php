@@ -25,6 +25,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Actions\Action;
 use Illuminate\Database\Eloquent\Builder;
 use App\Models\Schedule;
+use App\Models\SpecialistDoctor;
 
 class McuResultResource extends Resource
 {
@@ -148,6 +149,25 @@ class McuResultResource extends Resource
 							->label('Recommendations')
 							->rows(3)
 							->placeholder('Enter health recommendations'),
+						// Select::make('specialist_doctor_id')
+						// 	->label('Dokter Spesialis (Rekomendasi)')
+						// 	->options(\App\Models\SpecialistDoctor::all()->pluck('name', 'id'))
+						// 	->searchable()
+						// 	->preload()
+						// 	->placeholder('Pilih dokter spesialis jika perlu'),
+												Select::make('specialist_doctor_ids')
+													->label('Dokter Spesialis (Rekomendasi)')
+													->multiple()
+													->searchable()
+													->options(function () {
+														return SpecialistDoctor::query()
+															->where('is_active', true)
+															->orderBy('name')
+															->pluck('name', 'id')
+															->toArray();
+													})
+													->placeholder('Cari berdasarkan nama...')
+													->helperText('Pilih satu atau lebih dokter spesialis sebagai rekomendasi.'),
 					])
 					->columns(2),
 
@@ -178,6 +198,9 @@ class McuResultResource extends Resource
 	public static function table(Table $table): Table
 	{
 		return $table
+			->modifyQueryUsing(function (Builder $query) {
+				$query->with(['participant', 'schedule']);
+			})
 			->columns([
 				TextColumn::make('participant.nama_lengkap')
 					->label('Participant Name')

@@ -1,0 +1,619 @@
+// ============================================================================
+// CDN LOADER - Ensures CKEditor 5 loads reliably from CDN
+// ============================================================================
+var ckEditorCDNLoaded = false;
+
+function loadCKEditorFromCDN() {
+    if (ckEditorCDNLoaded || window.DecoupledEditor) {
+        console.log('[CDN] CKEditor 5 already loaded');
+        return Promise.resolve();
+    }
+    
+    return new Promise(function(resolve, reject) {
+        console.log('[CDN] Loading CKEditor 5 Decoupled Document from CDN...');
+        
+        var script = document.createElement('script');
+        script.src = 'https://cdn.ckeditor.com/ckeditor5/40.1.0/decoupled-document/ckeditor.js';
+        script.async = true;
+        
+        script.onload = function() {
+            ckEditorCDNLoaded = true;
+            console.log('[CDN] ✅ CKEditor 5 loaded successfully from CDN');
+            
+            // Verify DecoupledEditor is available
+            if (window.DecoupledEditor) {
+                console.log('[CDN] ✅ DecoupledEditor available');
+                resolve();
+            } else {
+                console.error('[CDN] ❌ DecoupledEditor not available after load!');
+                reject(new Error('DecoupledEditor not available'));
+            }
+        };
+        
+        script.onerror = function(error) {
+            console.error('[CDN] ❌ Failed to load CKEditor 5 from CDN:', error);
+            reject(error);
+        };
+        
+        document.head.appendChild(script);
+        console.log('[CDN] Script tag added to head');
+    });
+}
+
+
+// CKEditor 5 Collaborative Document Editor Integration
+console.log('CKEditor 5 Collaborative Document Editor loaded');
+
+// Global variables
+var ckEditorInstances = {};
+var isLoaded = false;
+
+// Collaborative editor initialization
+function initCollaborativeCKEditor(editorId, buildType, config) {
+    console.log('Initializing CKEditor 5 Collaborative Document Editor:', editorId, buildType);
+    
+    var textarea = document.getElementById(editorId);
+    var editorContainer = document.getElementById(editorId + '-editor');
+    
+    if (!textarea || !editorContainer) {
+        console.error('Required elements not found:', { textarea: !!textarea, editorContainer: !!editorContainer });
+        return;
+    }
+    
+    // Enhanced config for collaborative document editing
+    var collaborativeConfig = enhanceConfigForCollaborative(config);
+    
+    // Load CKEditor 5
+    loadCKEditor5Collaborative(buildType).then(function() {
+        createCollaborativeEditor(editorId, editorContainer, textarea, collaborativeConfig);
+    }).catch(function(error) {
+        console.error('Failed to load CKEditor 5 Collaborative:', error);
+        showCollaborativeFallback(editorContainer, textarea);
+    });
+}
+
+// Enhance config for collaborative document editing
+function enhanceConfigForCollaborative(config) {
+    var enhanced = Object.assign({}, config);
+    
+    // Collaborative document editor configuration
+    enhanced.toolbar = {
+        items: [
+            // Document structure
+            'heading',
+            '|',
+            
+            // Text formatting
+            'bold',
+            'italic',
+            'underline',
+            'strikethrough',
+            '|',
+            
+            // Font controls
+            'fontSize',
+            'fontFamily',
+            'fontColor',
+            'fontBackgroundColor',
+            '|',
+            
+            // Alignment (key feature for collaborative documents)
+            'alignment',
+            '|',
+            
+            // Lists and indentation
+            'numberedList',
+            'bulletedList',
+            'outdent',
+            'indent',
+            '|',
+            
+            // Content insertion
+            'imageUpload',
+            'insertTable',
+            'link',
+            'blockQuote',
+            'codeBlock',
+            '|',
+            
+            // Document features
+            'horizontalLine',
+            'specialCharacters',
+            '|',
+            
+            // Collaboration features
+            'trackChanges',
+            'comments',
+            '|',
+            
+            // Source and editing
+            'sourceEditing',
+            '|',
+            
+            // Undo/Redo
+            'undo',
+            'redo'
+        ]
+    };
+    
+    // Enhanced alignment configuration
+    enhanced.alignment = {
+        options: ['left', 'center', 'right', 'justify']
+    };
+    
+    // Enhanced font family options
+    enhanced.fontFamily = {
+        options: [
+            'default',
+            'Arial, Helvetica, sans-serif',
+            'Times New Roman, Times, serif',
+            'Courier New, Courier, monospace',
+            'Georgia, serif',
+            'Verdana, Geneva, sans-serif',
+            'Comic Sans MS, cursive',
+            'Impact, sans-serif',
+            'Trebuchet MS, sans-serif',
+            'Palatino, serif'
+        ]
+    };
+    
+    // Enhanced font size options
+    enhanced.fontSize = {
+        options: [
+            'default',
+            '9px',
+            '10px',
+            '11px',
+            '12px',
+            '14px',
+            '16px',
+            '18px',
+            '20px',
+            '24px',
+            '28px',
+            '32px',
+            '36px',
+            '48px',
+            '60px',
+            '72px'
+        ]
+    };
+    
+    // Enhanced heading options
+    enhanced.heading = {
+        options: [
+            { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+            { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+            { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+            { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
+            { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' },
+            { model: 'heading5', view: 'h5', title: 'Heading 5', class: 'ck-heading_heading5' },
+            { model: 'heading6', view: 'h6', title: 'Heading 6', class: 'ck-heading_heading6' }
+        ]
+    };
+    
+    // Table configuration
+    enhanced.table = {
+        contentToolbar: [
+            'tableColumn',
+            'tableRow',
+            'mergeTableCells',
+            'tableProperties',
+            'tableCellProperties'
+        ]
+    };
+    
+    // Image configuration
+    enhanced.image = {
+        toolbar: [
+            'imageTextAlternative',
+            'imageStyle:full',
+            'imageStyle:side',
+            'imageStyle:alignLeft',
+            'imageStyle:alignCenter',
+            'imageStyle:alignRight'
+        ]
+    };
+    
+    // Language and UI
+    enhanced.language = 'en';
+    enhanced.placeholder = 'Start writing your collaborative document...';
+    
+    return enhanced;
+}
+
+// Load CKEditor 5 Collaborative
+function loadCKEditor5Collaborative(buildType) {
+    if (isLoaded) {
+        return Promise.resolve();
+    }
+    
+    return new Promise(function(resolve, reject) {
+        console.log('Loading CKEditor 5 Collaborative Document Editor:', buildType);
+        
+        var script = document.createElement('script');
+        // Load from CDN instead
+        return loadCKEditorFromCDN();
+        script.onload = function() {
+            console.log('CKEditor 5 Collaborative script loaded');
+            isLoaded = true;
+            resolve();
+        };
+        script.onerror = function() {
+            console.error('Failed to load CKEditor 5 Collaborative script');
+            reject(new Error('Failed to load script'));
+        };
+        document.head.appendChild(script);
+    });
+}
+
+// Create collaborative editor
+function createCollaborativeEditor(editorId, editorContainer, textarea, config) {
+    console.log('Creating collaborative editor with config:', config);
+    
+    // Try different editor classes for collaborative editing
+    var EditorClass = null;
+    var attempts = 0;
+    var maxAttempts = 10;
+    
+    function tryCreateCollaborativeEditor() {
+        attempts++;
+        console.log('Attempt', attempts, 'to find collaborative editor class');
+        
+        // Try DecoupledEditor first (collaborative document editor)
+        if (typeof DecoupledEditor !== 'undefined') {
+            EditorClass = DecoupledEditor;
+            console.log('Using DecoupledEditor for collaborative editing');
+        } else if (typeof DecoupledEditor !== 'undefined') {
+            EditorClass = DecoupledEditor;
+            console.log('Using DecoupledEditor (fallback for collaborative features)');
+        } else if (typeof BalloonBlockEditor !== 'undefined') {
+            EditorClass = BalloonBlockEditor;
+            console.log('Using BalloonBlockEditor (fallback for collaborative features)');
+        } else if (typeof InlineEditor !== 'undefined') {
+            EditorClass = InlineEditor;
+            console.log('Using InlineEditor (fallback for collaborative features)');
+        }
+        
+        if (EditorClass) {
+            // Create editor
+            EditorClass.create(editorContainer, config)
+                .then(function(editor) {
+                    console.log('Collaborative editor created successfully:', editorId);
+                    
+                    // For DecoupledEditor, create floating toolbar
+                    if (EditorClass === DecoupledEditor) {
+                        console.log('Setting up decoupled editor toolbar');
+                        
+                        // Create toolbar container
+                        var toolbarContainer = document.createElement('div');
+                        toolbarContainer.className = 'collaborative-toolbar';
+                        toolbarContainer.style.cssText = `
+                            position: sticky;
+                            top: 0;
+                            z-index: 1000;
+                            background: white;
+                            border-bottom: 1px solid #ddd;
+                            padding: 10px;
+                            margin-bottom: 10px;
+                            border-radius: 4px;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        `;
+                        
+                        // Insert toolbar before editor
+                        editorContainer.parentNode.insertBefore(toolbarContainer, editorContainer);
+                        
+                        // Attach toolbar
+                        editor.ui.view.toolbar.element.style.display = 'none'; // Hide default toolbar
+                        toolbarContainer.appendChild(editor.ui.view.toolbar.element);
+                        toolbarContainer.querySelector('.ck-toolbar').style.display = 'flex';
+                        toolbarContainer.querySelector('.ck-toolbar').style.flexWrap = 'wrap';
+                        toolbarContainer.querySelector('.ck-toolbar').style.gap = '5px';
+                    }
+                    
+                    // Store instance
+                    ckEditorInstances[editorId] = editor;
+                    
+                    // Set initial content
+                    editor.setData(textarea.value || '');
+                    
+                    // Enhanced collaborative event handling
+                           editor.model.document.on('change:data', function() {
+                               var data = editor.getData();
+                               textarea.value = data;
+                               
+                               // Trigger change event
+                               var event = new Event('input', { bubbles: true });
+                               textarea.dispatchEvent(event);
+                               
+                               // Also trigger change for Livewire
+                               textarea.dispatchEvent(new Event('change', { bubbles: true }));
+                           });
+                           
+                           // Ensure data is saved before form submission
+                           var form = textarea.closest('form');
+                           if (form) {
+                               form.addEventListener('submit', function(e) {
+                                   textarea.value = editor.getData();
+                                   console.log('CKEditor 5 Collaborative: Form submission - Data length:', textarea.value.length);
+                               });
+                           }
+                           
+                           // For Livewire forms, listen for wire:submit
+                           textarea.addEventListener('wire:submit', function() {
+                               textarea.value = editor.getData();
+                               console.log('CKEditor 5 Collaborative: Livewire submit - Data length:', textarea.value.length);
+                           });
+                           
+                           // For Filament/Alpine.js forms
+                           window.addEventListener('form-submit', function(event) {
+                               if (form && event.detail && event.detail.form === form) {
+                                   textarea.value = editor.getData();
+                                   console.log('CKEditor 5 Collaborative: Alpine submit - Data length:', textarea.value.length);
+                               }
+                           });
+                           
+                           // Also listen for Filament save button click
+                           document.addEventListener('click', function(e) {
+                               if (e.target && (
+                                   e.target.matches('button[type="submit"]') ||
+                                   e.target.closest('button[type="submit"]') ||
+                                   e.target.matches('[wire\\:click*="save"]') ||
+                                   e.target.closest('[wire\\:click*="save"]')
+                               )) {
+                                   setTimeout(function() {
+                                       textarea.value = editor.getData();
+                                       console.log('CKEditor 5 Collaborative: Button click submit - Data length:', textarea.value.length);
+                                   }, 10);
+                               }
+                           });
+                    
+                    // Log collaborative features
+                    logCollaborativeFeatures(editor);
+                    
+                    console.log('Collaborative editor setup complete:', editorId);
+                })
+                .catch(function(error) {
+                    console.error('Error creating collaborative editor:', error);
+                    showCollaborativeFallback(editorContainer, textarea);
+                });
+        } else if (attempts < maxAttempts) {
+            console.log('Collaborative editor class not found, retrying...');
+            setTimeout(tryCreateCollaborativeEditor, 100);
+        } else {
+            console.error('No suitable collaborative editor class found after', maxAttempts, 'attempts');
+            showCollaborativeFallback(editorContainer, textarea);
+        }
+    }
+    
+    tryCreateCollaborativeEditor();
+}
+
+// Log collaborative features
+function logCollaborativeFeatures(editor) {
+    try {
+        console.log('✅ Collaborative Document Editor Features:');
+        
+        // Check for alignment plugin
+        if (editor.plugins.get('Alignment')) {
+            console.log('✅ Alignment plugin loaded');
+        } else {
+            console.log('⚠️ Alignment plugin not found');
+        }
+        
+        // Check for collaboration plugins
+        if (editor.plugins.get('TrackChanges')) {
+            console.log('✅ Track Changes plugin available');
+        }
+        
+        if (editor.plugins.get('Comments')) {
+            console.log('✅ Comments plugin available');
+        }
+        
+        // Check for document structure plugins
+        if (editor.plugins.get('Heading')) {
+            console.log('✅ Heading plugin loaded');
+        }
+        
+        if (editor.plugins.get('Table')) {
+            console.log('✅ Table plugin loaded');
+        }
+        
+        if (editor.plugins.get('Image')) {
+            console.log('✅ Image plugin loaded');
+        }
+        
+        // Log available toolbar items
+        var toolbarItems = editor.ui.componentFactory.names();
+        console.log('Available toolbar items:', toolbarItems);
+        
+        // Check for alignment in toolbar
+        if (toolbarItems.includes('alignment')) {
+            console.log('✅ Alignment toolbar item available');
+        } else {
+            console.log('❌ Alignment toolbar item not found');
+        }
+        
+    } catch (error) {
+        console.log('Could not log collaborative features:', error);
+    }
+}
+
+// Enhanced collaborative fallback
+function showCollaborativeFallback(container, textarea) {
+    console.log('Showing collaborative fallback editor');
+    
+    container.innerHTML = '<div style="padding: 20px; border: 1px solid #d1d5db; border-radius: 4px; background: #f9f9f9;">' +
+        '<div style="margin-bottom: 10px; font-weight: bold;">Collaborative Document Editor (Fallback)</div>' +
+        '<div style="margin-bottom: 10px; display: flex; gap: 5px; flex-wrap: wrap;">' +
+        '<select onchange="setHeading(this.value)" style="padding: 5px; border: 1px solid #ccc; background: white; cursor: pointer;">' +
+        '<option value="">Heading</option>' +
+        '<option value="h1">Heading 1</option>' +
+        '<option value="h2">Heading 2</option>' +
+        '<option value="h3">Heading 3</option>' +
+        '<option value="p">Paragraph</option>' +
+        '</select>' +
+        '<button onclick="formatText(\'bold\')" style="padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer; font-weight: bold;" title="Bold">B</button>' +
+        '<button onclick="formatText(\'italic\')" style="padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer; font-style: italic;" title="Italic">I</button>' +
+        '<button onclick="formatText(\'underline\')" style="padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer; text-decoration: underline;" title="Underline">U</button>' +
+        '<button onclick="alignText(\'left\')" style="padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer;" title="Align Left">⬅</button>' +
+        '<button onclick="alignText(\'center\')" style="padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer;" title="Align Center">⬆</button>' +
+        '<button onclick="alignText(\'right\')" style="padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer;" title="Align Right">➡</button>' +
+        '<button onclick="alignText(\'justify\')" style="padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer;" title="Justify">⬌</button>' +
+        '<button onclick="insertList(\'ul\')" style="padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer;" title="Bullet List">•</button>' +
+        '<button onclick="insertList(\'ol\')" style="padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer;" title="Numbered List">1.</button>' +
+        '</div>' +
+        '<div contenteditable="true" style="min-height: 400px; padding: 15px; border: 1px solid #ccc; background: white; outline: none; line-height: 1.6;" id="collaborative-fallback-editor">' +
+        (textarea.value || '') +
+        '</div>' +
+        '<div style="margin-top: 10px; font-size: 12px; color: #666;">Note: Using collaborative fallback editor as CKEditor 5 Collaborative is not available.</div>' +
+        '</div>';
+    
+    var fallbackEditor = document.getElementById('collaborative-fallback-editor');
+    
+    // Set initial content
+    fallbackEditor.innerHTML = textarea.value || '';
+    
+    // Listen for changes
+    fallbackEditor.addEventListener('input', function() {
+        textarea.value = fallbackEditor.innerHTML;
+        
+        // Trigger change event
+        var event = new Event('input', { bubbles: true });
+        textarea.dispatchEvent(event);
+    });
+    
+    // Handle form submission
+    var form = textarea.closest('form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            textarea.value = fallbackEditor.innerHTML;
+        });
+    }
+}
+
+// Global collaborative functions for fallback
+window.setHeading = function(heading) {
+    if (heading) {
+        document.execCommand('formatBlock', false, heading);
+    }
+};
+
+window.alignText = function(alignment) {
+    var editor = document.getElementById('collaborative-fallback-editor');
+    if (editor) {
+        var selectedText = window.getSelection().toString();
+        if (selectedText) {
+            var range = window.getSelection().getRangeAt(0);
+            var paragraph = range.commonAncestorContainer.parentNode;
+            if (paragraph.tagName === 'P' || paragraph.tagName.match(/^H[1-6]$/)) {
+                paragraph.style.textAlign = alignment;
+            }
+        } else {
+            var selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                var range = selection.getRangeAt(0);
+                var paragraph = range.commonAncestorContainer;
+                while (paragraph && !paragraph.tagName.match(/^(P|H[1-6])$/)) {
+                    paragraph = paragraph.parentNode;
+                }
+                if (paragraph) {
+                    paragraph.style.textAlign = alignment;
+                }
+            }
+        }
+    }
+};
+
+window.formatText = function(format) {
+    document.execCommand(format, false, null);
+};
+
+window.insertList = function(type) {
+    document.execCommand(type === 'ul' ? 'insertUnorderedList' : 'insertOrderedList', false, null);
+};
+
+// Global function for compatibility
+window.initializeCKEditor5 = function(editorId, buildType, config) {
+    console.log('Global initializeCKEditor5 called with collaborative features:', editorId);
+    initCollaborativeCKEditor(editorId, buildType, config);
+};
+
+// Cleanup function
+window.destroyCKEditor5 = function(editorId) {
+    if (ckEditorInstances[editorId]) {
+        ckEditorInstances[editorId].destroy();
+        delete ckEditorInstances[editorId];
+    }
+};
+
+// Initialize CKEditor 5 with Persistent Toolbar (for DecoupledEditor)
+window.initializeCKEditor5WithPersistentToolbar = function(editorId, buildType, config) {
+    console.log('Initializing CKEditor 5 with persistent toolbar:', editorId, buildType);
+    
+    var textarea = document.getElementById(editorId);
+    var editorContainer = document.getElementById(editorId + '-editor');
+    var toolbarContainer = document.getElementById(editorId + '-toolbar');
+    
+    if (!textarea || !editorContainer) {
+        console.error('Required elements not found:', {
+            textarea: !!textarea,
+            editorContainer: !!editorContainer,
+            toolbarContainer: !!toolbarContainer
+        });
+        return;
+    }
+    
+    if (!toolbarContainer) {
+        console.warn('Toolbar container not found, falling back to standard initialization');
+        initCollaborativeCKEditor(editorId, buildType, config);
+        return;
+    }
+    
+    // Store toolbar container reference globally
+    if (!window.ckEditorToolbarContainers) {
+        window.ckEditorToolbarContainers = {};
+    }
+    window.ckEditorToolbarContainers[editorId] = toolbarContainer;
+    
+    // Initialize the editor
+    initCollaborativeCKEditor(editorId, buildType, config);
+    
+    console.log('Persistent toolbar container stored for:', editorId);
+};
+
+// Function to re-mount toolbar if needed (after Livewire updates)
+window.remountDecoupledToolbarIfNeeded = function(editorId) {
+    var toolbarContainer = window.ckEditorToolbarContainers ? window.ckEditorToolbarContainers[editorId] : null;
+    var editorInstance = ckEditorInstances[editorId];
+    
+    if (!toolbarContainer) {
+        console.log('Toolbar container not found for:', editorId);
+        return;
+    }
+    
+    if (!editorInstance) {
+        console.log('Editor instance not found for:', editorId);
+        return;
+    }
+    
+    // Check if toolbar is already mounted
+    if (toolbarContainer.children.length > 0) {
+        console.log('Toolbar already mounted for:', editorId);
+        return;
+    }
+    
+    // Re-mount toolbar
+    try {
+        if (editorInstance.ui && editorInstance.ui.view && editorInstance.ui.view.toolbar && editorInstance.ui.view.toolbar.element) {
+            toolbarContainer.appendChild(editorInstance.ui.view.toolbar.element);
+            console.log('✅ Toolbar re-mounted successfully for:', editorId);
+        } else {
+            console.warn('Toolbar element not available for remounting');
+        }
+    } catch (error) {
+        console.error('Failed to re-mount toolbar:', error);
+    }
+};
+
+console.log('CKEditor 5 Collaborative Document Editor ready (with persistent toolbar support)');

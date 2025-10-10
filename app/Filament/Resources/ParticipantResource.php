@@ -119,6 +119,9 @@ class ParticipantResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(function (Builder $query) {
+                $query->withCount(['schedules', 'mcuResults']);
+            })
             ->columns([
                 Tables\Columns\TextColumn::make('nik_ktp')
                     ->label('NIK KTP')
@@ -173,13 +176,11 @@ class ParticipantResource extends Resource
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-				Tables\Columns\TextColumn::make('schedules_count')
-					->counts('schedules')
+                Tables\Columns\TextColumn::make('schedules_count')
 					->label('Jadwal')
 					->badge()
 					->sortable(),
-				Tables\Columns\TextColumn::make('mcu_results_count')
-					->counts('mcuResults')
+                Tables\Columns\TextColumn::make('mcu_results_count')
 					->label('Riwayat MCU')
 					->badge()
 					->sortable(),

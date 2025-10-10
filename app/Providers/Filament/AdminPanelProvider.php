@@ -25,6 +25,7 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
+            ->brandLogo(fn() => view('filament.logo'))
             ->id('admin')
             ->path('admin')
             ->login()
@@ -37,6 +38,8 @@ class AdminPanelProvider extends PanelProvider
                 Dashboard::class,
                 \App\Filament\Pages\AdminNotifications::class,
                 \App\Filament\Pages\RescheduleCenter::class,
+                \App\Filament\Pages\EmailTemplates::class,
+                \App\Filament\Pages\WhatsAppTemplates::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
@@ -47,6 +50,7 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Widgets\TodayQueueTable::class,
                 \App\Filament\Widgets\DailyQueueChart::class,
                 \App\Filament\Widgets\ConfirmRescheduleStatsWidget::class,
+                \App\Filament\Widgets\ConfirmedAttendanceTable::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -63,6 +67,10 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->authGuard('web')
-            ->defaultAvatarProvider(\Filament\AvatarProviders\UiAvatarsProvider::class);
+            ->defaultAvatarProvider(\Filament\AvatarProviders\UiAvatarsProvider::class)
+            ->renderHook(
+                'panels::body.end',
+                fn (): string => '<script src="' . asset('js/ckeditor5-collaborative.js?v=' . time() . '&t=' . uniqid() . '&u=' . rand(1000, 9999)) . '"></script>'
+            );
     }
 }
