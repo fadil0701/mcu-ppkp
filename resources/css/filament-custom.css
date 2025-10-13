@@ -1,0 +1,36 @@
+/* Custom CSS untuk memperbaiki kontras icon navigation pada light theme */
+
+/* Icon navigation untuk light theme */
+.dark .fi-sidebar-nav-item-icon {
+    color: rgb(156 163 175) !important; /* gray-400 */
+}
+
+/* Icon navigation untuk light theme - lebih gelap agar terlihat */
+.fi-sidebar-nav-item-icon {
+    color: rgb(75 85 99) !important; /* gray-600 */
+}
+
+/* Icon navigation ketika active/hover */
+.fi-sidebar-nav-item-active .fi-sidebar-nav-item-icon,
+.fi-sidebar-nav-item:hover .fi-sidebar-nav-item-icon {
+    color: rgb(55 65 81) !important; /* gray-700 */
+}
+
+/* Icon navigation untuk Reports khususnya */
+.fi-sidebar-nav-item[href*="reports"] .fi-sidebar-nav-item-icon {
+    color: rgb(75 85 99) !important; /* gray-600 */
+}
+
+.fi-sidebar-nav-item-active[href*="reports"] .fi-sidebar-nav-item-icon {
+    color: rgb(55 65 81) !important; /* gray-700 */
+}
+
+/* Alternatif dengan warna yang lebih kontras */
+.fi-sidebar-nav-item[href*="reports"] .fi-sidebar-nav-item-icon {
+    color: rgb(31 41 55) !important; /* gray-800 */
+}
+
+/* Icon Reports ketika active */
+.fi-sidebar-nav-item-active[href*="reports"] .fi-sidebar-nav-item-icon {
+    color: rgb(17 24 39) !important; /* gray-900 */
+}

@@ -71,6 +71,10 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 'panels::body.end',
                 fn (): string => '<script src="' . asset('js/ckeditor5-collaborative.js?v=' . time() . '&t=' . uniqid() . '&u=' . rand(1000, 9999)) . '"></script>'
+            )
+            ->renderHook(
+                'panels::head.end',
+                fn (): string => '<link rel="stylesheet" href="' . asset('css/filament-custom.css?v=' . time()) . '">'
             );
     }
 }
