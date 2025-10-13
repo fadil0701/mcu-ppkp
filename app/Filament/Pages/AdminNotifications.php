@@ -14,9 +14,14 @@ class AdminNotifications extends Page
 	protected static ?string $slug = 'notifications';
 	protected static string $view = 'filament.pages.admin-notifications';
 
+	public static function canAccess(): bool
+	{
+		return auth()->user()?->hasRole('super_admin') ?? false;
+	}
+
 	public function mount(): void
 	{
-		if (!auth()->user()?->isAdmin()) {
+		if (!auth()->user()?->hasRole('super_admin')) {
 			abort(403);
 		}
 	}

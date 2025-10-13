@@ -35,6 +35,11 @@ class PdfTemplateResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole('super_admin') ?? false;
+    }
+
     protected static ?string $navigationLabel = 'PDF Templates';
 
     protected static ?string $modelLabel = 'PDF Template';

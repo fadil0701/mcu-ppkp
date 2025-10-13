@@ -32,8 +32,9 @@ class McuResultResource extends Resource
 	protected static ?string $model = McuResult::class;
 
 	protected static ?string $navigationIcon = 'heroicon-o-document-text';
+	protected static ?string $navigationLabel = 'Hasil MCU';
 
-	protected static ?string $navigationGroup = 'MCU Management';
+	protected static ?string $navigationGroup = 'Data Management';
 
 	protected static ?int $navigationSort = 3;
 

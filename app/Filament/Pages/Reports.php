@@ -28,6 +28,7 @@ class Reports extends Page
     use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
+    protected static ?string $navigationLabel = 'Laporan';
 
     protected static ?string $navigationGroup = 'Reports & Analytics';
 

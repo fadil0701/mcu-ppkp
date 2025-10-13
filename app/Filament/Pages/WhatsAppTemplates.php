@@ -28,6 +28,11 @@ class WhatsAppTemplates extends Page implements HasForms
     protected static ?string $navigationGroup = 'Settings';
 
     protected static ?int $navigationSort = 4;
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole('super_admin') ?? false;
+    }
     
     protected static string $routePath = 'whatsapp-template';
 

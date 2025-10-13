@@ -201,9 +201,121 @@
             justify-content: center;
             font-size: 1.5rem;
         }
+        
+        /* Ensure Daftar MCU button is always visible */
+        .navbar-nav .nav-item:last-child .nav-link {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        /* Make sure button is visible on mobile */
+        @media (max-width: 991.98px) {
+            .navbar-nav .nav-item:last-child .nav-link {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                margin-top: 10px;
+            }
+        }
+        
+        /* Ensure buttons are clickable */
+        .nav-link, .btn-hero {
+            pointer-events: auto !important;
+            cursor: pointer !important;
+            z-index: 999 !important;
+            position: relative !important;
+        }
+        
+        /* Remove any overlay that might block clicks */
+        .hero-section::before {
+            pointer-events: none !important;
+        }
+        
+        /* Ensure hero buttons are clickable */
+        .hero-buttons a {
+            pointer-events: auto !important;
+            cursor: pointer !important;
+            z-index: 999 !important;
+            position: relative !important;
+        }
+        
+        /* Force clickable for all buttons */
+        .btn, .btn-hero, .nav-link {
+            pointer-events: auto !important;
+            cursor: pointer !important;
+            z-index: 9999 !important;
+            position: relative !important;
+        }
             </style>
+            
+    <script>
+        // Global navigation functions
+        function goToLogin() {
+            console.log('=== goToLogin function called ===');
+            console.log('Current URL:', window.location.href);
+            console.log('Attempting to navigate to /login');
+            
+            // Try direct navigation
+            window.location.href = '/login';
+            
+            // Log after navigation attempt
+            console.log('Navigation command sent');
+        }
+        
+        function goToRegister() {
+            console.log('=== goToRegister function called ===');
+            console.log('Current URL:', window.location.href);
+            console.log('Attempting to navigate to /register');
+            
+            // Try direct navigation
+            window.location.href = '/register';
+            
+            // Log after navigation attempt
+            console.log('Navigation command sent');
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, setting up buttons...');
+            
+            // Add click listeners to all buttons with onclick
+            const buttons = document.querySelectorAll('button');
+            console.log('Found', buttons.length, 'buttons');
+            
+            buttons.forEach(function(button, index) {
+                console.log('Button', index, ':', button);
+                console.log('Button onclick:', button.getAttribute('onclick'));
+                
+                // Add click event listener
+                button.addEventListener('click', function(e) {
+                    console.log('=== Button clicked ===');
+                    console.log('Button element:', this);
+                    console.log('Button onclick attr:', this.getAttribute('onclick'));
+                    console.log('Button text:', this.textContent.trim());
+                    
+                    // Don't prevent default, let onclick work
+                });
+            });
+            
+            // Also check for any links
+            const links = document.querySelectorAll('a');
+            console.log('Found', links.length, 'links');
+            
+            links.forEach(function(link, index) {
+                const href = link.getAttribute('href');
+                if (href && (href.includes('/login') || href.includes('/register'))) {
+                    console.log('Link', index, ':', href);
+                }
+            });
+        });
+    </script>
     </head>
 <body>
+    <!-- Hidden forms for navigation backup -->
+    <form id="loginForm" method="GET" action="/login" style="display: none;">
+    </form>
+    <form id="registerForm" method="GET" action="/register" style="display: none;">
+    </form>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light fixed-top">
         <div class="container">
@@ -220,13 +332,10 @@
                         <a class="nav-link" href="#features">Fitur</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#about">Tentang</a>
+                        <a class="nav-link" href="/login">Login</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('login') }}">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link btn btn-primary text-white px-3" href="{{ route('register') }}">Daftar MCU</a>
+                        <a class="nav-link btn btn-primary text-white px-3" href="/register" style="background-color: #007bff !important; border-color: #007bff !important; color: white !important; text-decoration: none !important;">Daftar MCU</a>
                     </li>
                 </ul>
             </div>
@@ -249,10 +358,10 @@
                     <h1 class="hero-title">Sistem Monitoring MCU</h1>
                     <p class="hero-subtitle">Platform terpadu untuk monitoring dan penjadwalan Medical Check Up pegawai PPKP DKI Jakarta</p>
                     <div class="hero-buttons">
-                        <a href="{{ route('register') }}" class="btn-hero btn-primary-hero">
+                        <a href="/register" class="btn-hero btn-primary-hero" style="text-decoration: none !important;">
                             <i class="fas fa-user-plus me-2"></i>Daftar MCU Sekarang
                         </a>
-                        <a href="{{ route('login') }}" class="btn-hero btn-outline-hero">
+                        <a href="/login" class="btn-hero btn-outline-hero" style="text-decoration: none !important;">
                             <i class="fas fa-sign-in-alt me-2"></i>Login
                         </a>
                     </div>
@@ -378,10 +487,10 @@
             <h2 class="display-4 fw-bold mb-4">Siap untuk Mendaftar MCU?</h2>
             <p class="lead mb-5">Bergabunglah dengan sistem monitoring MCU terpadu untuk pegawai PPKP DKI Jakarta</p>
             <div class="d-flex justify-content-center gap-3 flex-wrap">
-                <a href="{{ route('register') }}" class="btn btn-success btn-lg px-5 py-3">
+                <a href="/register" class="btn btn-success btn-lg px-5 py-3" style="text-decoration: none !important;">
                     <i class="fas fa-user-plus me-2"></i>Daftar Sekarang
                 </a>
-                <a href="{{ route('login') }}" class="btn btn-outline-light btn-lg px-5 py-3">
+                <a href="/login" class="btn btn-outline-light btn-lg px-5 py-3" style="text-decoration: none !important;">
                     <i class="fas fa-sign-in-alt me-2"></i>Login
                 </a>
             </div>

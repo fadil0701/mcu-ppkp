@@ -32,6 +32,11 @@ class EmailTemplateResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-envelope';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole('super_admin') ?? false;
+    }
+
     protected static ?string $navigationLabel = 'Email Templates';
 
     protected static ?string $modelLabel = 'Email Template';

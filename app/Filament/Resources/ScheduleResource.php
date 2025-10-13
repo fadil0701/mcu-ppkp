@@ -29,8 +29,9 @@ class ScheduleResource extends Resource
     protected static ?string $model = Schedule::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
+    protected static ?string $navigationLabel = 'Jadwal MCU';
 
-    protected static ?string $navigationGroup = 'MCU Management';
+    protected static ?string $navigationGroup = 'Data Management';
 
     protected static ?int $navigationSort = 2;
 

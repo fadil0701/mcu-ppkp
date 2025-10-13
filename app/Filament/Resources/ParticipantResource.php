@@ -22,6 +22,7 @@ class ParticipantResource extends Resource
     protected static ?string $modelLabel = 'Peserta';
     protected static ?string $pluralModelLabel = 'Peserta';
     protected static ?int $navigationSort = 1;
+    protected static ?string $navigationGroup = 'Data Management';
 
     public static function form(Form $form): Form
     {

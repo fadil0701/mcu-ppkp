@@ -25,6 +25,11 @@ class RescheduleCenter extends Page implements Tables\Contracts\HasTable
 	protected static ?int $navigationSort = 3;
 	protected static string $view = 'filament.pages.reschedule-center';
 
+	public static function canAccess(): bool
+	{
+		return auth()->user()?->hasRole('super_admin') ?? false;
+	}
+
 	public function table(Table $table): Table
 	{
 		return $table

@@ -34,24 +34,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
-            ->pages([
-                Dashboard::class,
-                \App\Filament\Pages\AdminNotifications::class,
-                \App\Filament\Pages\RescheduleCenter::class,
-                \App\Filament\Pages\EmailTemplates::class,
-                \App\Filament\Pages\WhatsAppTemplates::class,
-            ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
-            ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
-                \App\Filament\Widgets\AdminNotificationsWidget::class,
-                \App\Filament\Widgets\DailyQueueWidget::class,
-                \App\Filament\Widgets\TodayQueueTable::class,
-                \App\Filament\Widgets\DailyQueueChart::class,
-                \App\Filament\Widgets\ConfirmRescheduleStatsWidget::class,
-                \App\Filament\Widgets\ConfirmedAttendanceTable::class,
-            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -62,6 +45,7 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                \App\Http\Middleware\AdminAccessMiddleware::class,
             ])
             ->authMiddleware([
                 Authenticate::class,
