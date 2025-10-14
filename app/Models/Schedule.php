@@ -110,4 +110,20 @@ class Schedule extends Model
     {
         return $this->tanggal_pemeriksaan->isFuture();
     }
+
+    /**
+     * Boot the model and clear cache on changes
+     */
+    protected static function booted(): void
+    {
+        static::saved(function () {
+            cache()->forget('dashboard_stats');
+            cache()->forget('skpd_stats');
+        });
+
+        static::deleted(function () {
+            cache()->forget('dashboard_stats');
+            cache()->forget('skpd_stats');
+        });
+    }
 }

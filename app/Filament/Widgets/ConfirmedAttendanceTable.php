@@ -15,9 +15,13 @@ class ConfirmedAttendanceTable extends BaseWidget
 {
     protected static ?string $heading = 'Konfirmasi Hadir - Siap Diselesaikan (Hari Ini)';
 
-    protected static ?string $pollingInterval = '30s';
+    // Increased polling interval to reduce server load
+    protected static ?string $pollingInterval = '2m';
 
     protected int|string|array $columnSpan = 'full';
+    
+    // Lazy load this widget
+    protected static bool $isLazy = true;
 
     protected function getTableQuery(): Builder
     {
@@ -55,6 +59,10 @@ class ConfirmedAttendanceTable extends BaseWidget
                         'participant_confirmed' => false,
                         'participant_confirmed_at' => null,
                     ]);
+                    
+                    // Get current user name
+                    $uploadedBy = \Illuminate\Support\Facades\Auth::user()?->name ?? 'system';
+                    
                     // Ensure an MCU Result stub exists for this completed schedule
                     \App\Models\McuResult::firstOrCreate(
                         [
@@ -65,7 +73,7 @@ class ConfirmedAttendanceTable extends BaseWidget
                             'tanggal_pemeriksaan' => $record->tanggal_pemeriksaan,
                             'status_kesehatan' => 'Sehat',
                             'hasil_pemeriksaan' => '',
-                            'uploaded_by' => auth()->user()->name ?? 'system',
+                            'uploaded_by' => $uploadedBy,
                         ]
                     );
                 }),

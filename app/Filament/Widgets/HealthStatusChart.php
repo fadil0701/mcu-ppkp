@@ -8,14 +8,20 @@ use Filament\Widgets\ChartWidget;
 class HealthStatusChart extends ChartWidget
 {
     protected static ?string $heading = 'Distribusi Status Kesehatan';
+    
+    // Lazy load to improve initial page load
+    protected static bool $isLazy = true;
 
     protected function getData(): array
     {
-        $counts = [
-            'Sehat' => McuResult::where('status_kesehatan', 'Sehat')->count(),
-            'Kurang Sehat' => McuResult::where('status_kesehatan', 'Kurang Sehat')->count(),
-            'Tidak Sehat' => McuResult::where('status_kesehatan', 'Tidak Sehat')->count(),
-        ];
+        // Cache for 10 minutes
+        $counts = cache()->remember('health_status_chart', 600, function () {
+            return [
+                'Sehat' => McuResult::where('status_kesehatan', 'Sehat')->count(),
+                'Kurang Sehat' => McuResult::where('status_kesehatan', 'Kurang Sehat')->count(),
+                'Tidak Sehat' => McuResult::where('status_kesehatan', 'Tidak Sehat')->count(),
+            ];
+        });
 
         return [
             'datasets' => [

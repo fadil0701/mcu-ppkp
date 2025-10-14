@@ -115,4 +115,24 @@ class McuResult extends Model
         }
         return $this->diagnosis ?? '-';
     }
+
+    /**
+     * Boot the model and clear cache on changes
+     */
+    protected static function booted(): void
+    {
+        static::saved(function () {
+            cache()->forget('dashboard_stats');
+            cache()->forget('mcu_chart_data');
+            cache()->forget('health_status_chart');
+            cache()->forget('skpd_stats');
+        });
+
+        static::deleted(function () {
+            cache()->forget('dashboard_stats');
+            cache()->forget('mcu_chart_data');
+            cache()->forget('health_status_chart');
+            cache()->forget('skpd_stats');
+        });
+    }
 }

@@ -101,4 +101,22 @@ class Participant extends Model
     {
         return $this->tanggal_mcu_terakhir ? $this->tanggal_mcu_terakhir->format('d/m/Y') : '-';
     }
+
+    /**
+     * Boot the model and clear cache on changes
+     */
+    protected static function booted(): void
+    {
+        static::saved(function () {
+            cache()->forget('dashboard_stats');
+            cache()->forget('skpd_stats');
+            cache()->forget('mcu_chart_data');
+        });
+
+        static::deleted(function () {
+            cache()->forget('dashboard_stats');
+            cache()->forget('skpd_stats');
+            cache()->forget('mcu_chart_data');
+        });
+    }
 }

@@ -10,31 +10,57 @@ use Illuminate\Support\Carbon;
 class McuChart extends ChartWidget
 {
     protected static ?string $heading = 'Statistik MCU';
+    
+    // Lazy load to improve initial page load
+    protected static bool $isLazy = true;
 
     protected function getData(): array
     {
+        // Cache for 10 minutes
+        $chartData = cache()->remember('mcu_chart_data', 600, function () {
+            $startDate = Carbon::now()->subMonths(5)->startOfMonth();
+            $endDate = Carbon::now()->endOfMonth();
+
+            // Get participants data grouped by month
+            $participantsData = Participant::selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count")
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->groupBy('month')
+                ->orderBy('month')
+                ->pluck('count', 'month');
+
+            // Get MCU results data grouped by month
+            $mcuResultsData = McuResult::selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count")
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->groupBy('month')
+                ->orderBy('month')
+                ->pluck('count', 'month');
+            
+            return compact('participantsData', 'mcuResultsData');
+        });
+
+        $participantsData = $chartData['participantsData'];
+        $mcuResultsData = $chartData['mcuResultsData'];
+
+        // Generate months and map data
         $months = collect();
+        $participants = [];
+        $mcuResults = [];
+        
         for ($i = 5; $i >= 0; $i--) {
-            $months->push(Carbon::now()->subMonths($i)->format('M Y'));
+            $date = Carbon::now()->subMonths($i);
+            $monthKey = $date->format('Y-m');
+            $monthLabel = $date->format('M Y');
+            
+            $months->push($monthLabel);
+            $participants[] = $participantsData->get($monthKey, 0);
+            $mcuResults[] = $mcuResultsData->get($monthKey, 0);
         }
-
-        $participantsData = $months->map(function ($month) {
-            return Participant::whereMonth('created_at', Carbon::parse($month))
-                ->whereYear('created_at', Carbon::parse($month))
-                ->count();
-        });
-
-        $mcuResultsData = $months->map(function ($month) {
-            return McuResult::whereMonth('created_at', Carbon::parse($month))
-                ->whereYear('created_at', Carbon::parse($month))
-                ->count();
-        });
 
         return [
             'datasets' => [
                 [
                     'label' => 'Peserta Baru',
-                    'data' => $participantsData->toArray(),
+                    'data' => $participants,
                     'borderColor' => '#3b82f6',
                     'backgroundColor' => 'rgba(59, 130, 246, 0.25)',
                     'fill' => true,
@@ -44,7 +70,7 @@ class McuChart extends ChartWidget
                 ],
                 [
                     'label' => 'Hasil MCU',
-                    'data' => $mcuResultsData->toArray(),
+                    'data' => $mcuResults,
                     'borderColor' => '#10b981',
                     'backgroundColor' => 'rgba(16, 185, 129, 0.25)',
                     'fill' => true,

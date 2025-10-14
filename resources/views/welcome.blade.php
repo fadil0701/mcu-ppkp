@@ -320,8 +320,8 @@
     <nav class="navbar navbar-expand-lg navbar-light fixed-top">
         <div class="container">
             <a class="navbar-brand" href="#">
-                <i class="fas fa-heartbeat text-primary me-2"></i>
-                MCU PPKP DKI
+                <i src="{{ asset('images/logo.png') }}"></i>
+                MCU PPKP DKI Jakarta
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -356,7 +356,7 @@
                         </div>
                     </div>
                     <h1 class="hero-title">Sistem Monitoring MCU</h1>
-                    <p class="hero-subtitle">Platform terpadu untuk monitoring dan penjadwalan Medical Check Up pegawai PPKP DKI Jakarta</p>
+                    <p class="hero-subtitle">Platform terpadu untuk monitoring dan penjadwalan Medical Check Up ASN DKI Jakarta</p>
                     <div class="hero-buttons">
                         <a href="/register" class="btn-hero btn-primary-hero" style="text-decoration: none !important;">
                             <i class="fas fa-user-plus me-2"></i>Daftar MCU Sekarang
@@ -409,7 +409,7 @@
                             <i class="fas fa-chart-line"></i>
                         </div>
                         <h3 class="feature-title">Dashboard Monitoring</h3>
-                        <p class="feature-description">Dashboard real-time untuk monitoring kesehatan pegawai PPKP DKI Jakarta</p>
+                        <p class="feature-description">Dashboard real-time untuk monitoring kesehatan ASN DKI Jakarta</p>
                     </div>
                 </div>
                 <div class="col-lg-4">
@@ -449,7 +449,7 @@
             <div class="row">
                 <div class="col-12 text-center mb-5">
                     <h2 class="display-4 fw-bold mb-3">Statistik Sistem</h2>
-                    <p class="lead opacity-75">Monitoring kesehatan pegawai PPKP DKI Jakarta</p>
+                    <p class="lead opacity-75">Monitoring kesehatan ASN DKI Jakarta</p>
                 </div>
             </div>
             <div class="row">
@@ -485,7 +485,7 @@
     <section class="cta-section">
         <div class="container text-center">
             <h2 class="display-4 fw-bold mb-4">Siap untuk Mendaftar MCU?</h2>
-            <p class="lead mb-5">Bergabunglah dengan sistem monitoring MCU terpadu untuk pegawai PPKP DKI Jakarta</p>
+            <p class="lead mb-5">Bergabunglah dengan sistem monitoring MCU terpadu untuk ASN DKI Jakarta</p>
             <div class="d-flex justify-content-center gap-3 flex-wrap">
                 <a href="/register" class="btn btn-success btn-lg px-5 py-3" style="text-decoration: none !important;">
                     <i class="fas fa-user-plus me-2"></i>Daftar Sekarang
@@ -506,7 +506,7 @@
                         <i class="fas fa-heartbeat text-primary me-2"></i>
                         Sistem Monitoring MCU PPKP DKI Jakarta
                     </h5>
-                    <p class="text-muted">Platform terpadu untuk monitoring dan penjadwalan Medical Check Up pegawai PPKP DKI Jakarta dengan sistem yang aman dan terpercaya.</p>
+                    <p class="text-muted">Platform terpadu untuk monitoring dan penjadwalan Medical Check Up AS Jakarta dengan sistem yang aman dan terpercaya.</p>
                 </div>
                 <div class="col-lg-3">
                     <h6 class="mb-3">Quick Links</h6>
@@ -519,8 +519,8 @@
                 <div class="col-lg-3">
                     <h6 class="mb-3">Kontak</h6>
                     <ul class="list-unstyled text-muted">
-                        <li><i class="fas fa-envelope me-2"></i>info@mcu-ppkp.jakarta.go.id</li>
-                        <li><i class="fas fa-phone me-2"></i>(021) 1234-5678</li>
+                        <li><i class="fas fa-envelope me-2"></i>puspelkes@jakarta.go.id</li>
+                        <li><i class="fas fa-phone me-2"></i>(021) 382 3065</li>
                         <li><i class="fas fa-map-marker-alt me-2"></i>DKI Jakarta</li>
                     </ul>
                 </div>
@@ -528,7 +528,7 @@
             <hr class="my-4">
             <div class="row">
                 <div class="col-12 text-center">
-                    <p class="text-muted mb-0">&copy; 2024 Sistem Monitoring MCU PPKP DKI Jakarta. All rights reserved.</p>
+                    <p class="text-muted mb-0">&copy; 2025 Sistem Monitoring MCU PPKP DKI Jakarta. All rights reserved.</p>
                 </div>
             </div>
         </div>
