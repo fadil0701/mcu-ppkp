@@ -16,6 +16,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Get;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
@@ -102,21 +103,7 @@ class McuResultResource extends Resource
                             ->searchable()
                             ->placeholder('Cari berdasarkan nama atau kode diagnosis...')
                             ->getSearchResultsUsing(function (string $search): array {
-                                return Diagnosis::query()
-                                    ->where('is_active', true)
-                                    ->where(function ($q) use ($search) {
-                                        $q->where('name', 'like', "%$search%")
-                                          ->orWhere('code', 'like', "%$search%");
-                                    })
-                                    ->orderBy('name')
-                                    ->limit(50)
-                                    ->get()
-                                    ->mapWithKeys(function (Diagnosis $d) {
-                                        $label = $d->code ? ($d->code . ' - ' . $d->name) : $d->name;
-                                        // store value as name to match diagnosis_list (array of names)
-                                        return [$d->name => $label];
-                                    })
-                                    ->toArray();
+                                return Diagnosis::searchDiagnoses($search, 50);
                             })
                             ->getOptionLabelsUsing(function (array $values): array {
                                 if (empty($values)) return [];
@@ -193,6 +180,16 @@ class McuResultResource extends Resource
 							->previewable(),
 					])
 					->collapsible(),
+
+				Section::make('Publication Settings')
+					->schema([
+						Toggle::make('is_published')
+							->label('Publikasikan ke Peserta')
+							->helperText('Aktifkan untuk membuat hasil MCU terlihat oleh peserta. Nonaktifkan jika hasil belum lengkap.')
+							->default(false)
+							->inline(false),
+					])
+					->description('Kontrol apakah hasil MCU ini sudah bisa dilihat oleh peserta atau masih dalam proses.'),
 			]);
 	}
 
@@ -241,6 +238,15 @@ class McuResultResource extends Resource
 					->falseIcon('heroicon-o-x-circle')
 					->trueColor('success')
 					->falseColor('danger'),
+				
+				IconColumn::make('is_published')
+					->boolean()
+					->label('Dipublikasikan')
+					->trueIcon('heroicon-o-check-circle')
+					->falseIcon('heroicon-o-x-circle')
+					->trueColor('success')
+					->falseColor('warning')
+					->sortable(),
 				
 				TextColumn::make('uploaded_by')
 					->label('Uploaded By')
@@ -297,6 +303,13 @@ class McuResultResource extends Resource
 						);
 					})
 					->label('Download Status'),
+				
+				SelectFilter::make('is_published')
+					->options([
+						'1' => 'Sudah Dipublikasikan',
+						'0' => 'Belum Dipublikasikan',
+					])
+					->label('Status Publikasi'),
 			])
 			->actions([
 				Tables\Actions\ViewAction::make(),

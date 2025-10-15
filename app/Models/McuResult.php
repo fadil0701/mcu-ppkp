@@ -39,6 +39,7 @@ class McuResult extends Model
         'is_downloaded',
         'downloaded_at',
         'uploaded_by',
+        'is_published',
     ];
 
     public function specialistDoctors()
@@ -54,6 +55,7 @@ class McuResult extends Model
         'file_hasil_files' => 'array',
         'diagnosis_list' => 'array',
         'specialist_doctor_ids' => 'array',
+        'is_published' => 'boolean',
     ];
 
     public function participant(): BelongsTo

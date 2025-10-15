@@ -14,6 +14,8 @@ use Filament\Tables\Actions\Action;
 use Illuminate\Http\UploadedFile;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
+use App\Imports\DiagnosesImport;
+use Illuminate\Support\Facades\Log;
 
 class DiagnosisResource extends Resource
 {
@@ -49,7 +51,13 @@ class DiagnosisResource extends Resource
 				Tables\Columns\IconColumn::make('is_active')->boolean()->label('Aktif'),
 				Tables\Columns\TextColumn::make('updated_at')->dateTime()->label('Diubah')->toggleable(isToggledHiddenByDefault: true),
 			])
-			->filters([])
+			->filters([
+				Tables\Filters\TernaryFilter::make('is_active')
+					->label('Status Aktif')
+					->placeholder('Semua')
+					->trueLabel('Aktif')
+					->falseLabel('Tidak Aktif'),
+			])
 			->actions([
 				Tables\Actions\EditAction::make(),
 				Tables\Actions\DeleteAction::make(),
@@ -57,6 +65,30 @@ class DiagnosisResource extends Resource
 			->bulkActions([
 				Tables\Actions\BulkActionGroup::make([
 					Tables\Actions\DeleteBulkAction::make(),
+					
+					Tables\Actions\BulkAction::make('activate_selected')
+						->label('Aktifkan yang Dipilih')
+						->icon('heroicon-o-check-circle')
+						->color('success')
+						->action(function ($records) {
+							$records->each->update(['is_active' => true]);
+							\Filament\Notifications\Notification::make()
+								->title('Berhasil mengaktifkan diagnosis yang dipilih')
+								->success()
+								->send();
+						}),
+						
+					Tables\Actions\BulkAction::make('deactivate_selected')
+						->label('Nonaktifkan yang Dipilih')
+						->icon('heroicon-o-x-circle')
+						->color('warning')
+						->action(function ($records) {
+							$records->each->update(['is_active' => false]);
+							\Filament\Notifications\Notification::make()
+								->title('Berhasil menonaktifkan diagnosis yang dipilih')
+								->success()
+								->send();
+						}),
 				]),
 			])
 			->headerActions([
@@ -66,41 +98,109 @@ class DiagnosisResource extends Resource
 					->color('success')
 					->form([
 						Forms\Components\FileUpload::make('file')
-							->label('File (CSV)')
-							->acceptedFileTypes(['text/csv','text/plain'])
+							->label('File (CSV/Excel)')
+							->acceptedFileTypes([
+								'text/csv',
+								'text/plain',
+								'application/vnd.ms-excel',
+								'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+							])
 							->required()
 							->directory('imports')
-							->preserveFilenames(),
+							->preserveFilenames()
+							->helperText('Format: CSV atau Excel. Kolom: name, code, description, is_active'),
 					])
 					->action(function (array $data) {
 						$value = $data['file'] ?? null;
+						
 						if (!$value) {
-							\Filament\Notifications\Notification::make()->title('Tidak ada file')->danger()->send();
+							\Filament\Notifications\Notification::make()
+								->title('Tidak ada file')
+								->danger()
+								->send();
 							return;
 						}
-						$fullPath = is_string($value) ? Storage::disk('public')->path($value) : ($value instanceof UploadedFile ? $value->getRealPath() : null);
+
+						// Get file path
+						$fullPath = null;
+						if ($value instanceof UploadedFile) {
+							$stored = $value->storeAs('imports', 'diagnoses_' . now()->format('Ymd_His') . '.' . $value->getClientOriginalExtension(), 'public');
+							$fullPath = Storage::disk('public')->path($stored);
+						} elseif (is_string($value)) {
+							$fullPath = Storage::disk('public')->path($value);
+						}
+
 						if (!$fullPath || !file_exists($fullPath)) {
-							\Filament\Notifications\Notification::make()->title('File tidak ditemukan')->danger()->send();
+							\Filament\Notifications\Notification::make()
+								->title('File tidak ditemukan')
+								->danger()
+								->send();
 							return;
 						}
-						$rows = array_map('str_getcsv', file($fullPath));
-						// Expect header: code,name,description,is_active
-						$header = array_map('trim', array_shift($rows));
-						foreach ($rows as $row) {
-							$data = array_combine($header, $row);
-							if (!$data) continue;
-							Diagnosis::updateOrCreate(
-								['name' => $data['name'] ?? null],
-								[
-									'code' => $data['code'] ?? null,
-									'description' => $data['description'] ?? null,
-									'is_active' => isset($data['is_active']) ? in_array(strtolower($data['is_active']), ['1','true','yes'], true) : true,
-								]
-							);
+
+						try {
+							// Increase execution time limit for large imports
+							set_time_limit(300); // 5 minutes
+							ini_set('memory_limit', '512M');
+
+							// Show loading notification
+							\Filament\Notifications\Notification::make()
+								->title('Memproses import...')
+								->body('Mohon tunggu, sedang memproses data diagnosis. Proses ini mungkin memakan waktu beberapa menit.')
+								->info()
+								->persistent()
+								->send();
+
+							// Import using optimized class
+							$import = new DiagnosesImport();
+							Excel::import($import, $fullPath);
+
+							// Get import statistics
+							$stats = $import->getImportStats();
+
+							// Show success notification with details
+							\Filament\Notifications\Notification::make()
+								->title('Import berhasil!')
+								->body(sprintf(
+									'Imported: %d | Updated: %d | Skipped: %d | Errors: %d',
+									$stats['imported'],
+									$stats['updated'],
+									$stats['skipped'],
+									count($stats['errors'])
+								))
+								->success()
+								->send();
+
+							// Log import completion
+							Log::info('Diagnosis import completed', $stats);
+
+							// Clean up uploaded file
+							if (file_exists($fullPath)) {
+								unlink($fullPath);
+							}
+
+						} catch (\Throwable $e) {
+							Log::error('Diagnosis import failed: ' . $e->getMessage(), [
+								'exception' => $e,
+								'file_path' => $fullPath ?? 'unknown'
+							]);
+							
+							\Filament\Notifications\Notification::make()
+								->title('Import gagal')
+								->body('Terjadi kesalahan: ' . $e->getMessage())
+								->danger()
+								->send();
+
+							// Clean up uploaded file on error
+							if (isset($fullPath) && file_exists($fullPath)) {
+								unlink($fullPath);
+							}
 						}
-						\Filament\Notifications\Notification::make()->title('Import selesai')->success()->send();
 					}),
-			]);
+			])
+			->defaultSort('name')
+			->paginated([10, 25, 50, 100])
+			->poll('30s'); // Refresh every 30 seconds for long imports
 	}
 
 	public static function getPages(): array

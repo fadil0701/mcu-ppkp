@@ -37,7 +37,10 @@ class ClientController extends Controller
 			
 			if ($participant) {
 				$schedules = $participant->schedules()->orderBy('tanggal_pemeriksaan', 'desc')->get();
-				$mcuResults = $participant->mcuResults()->orderBy('tanggal_pemeriksaan', 'desc')->get();
+				$mcuResults = $participant->mcuResults()
+					->where('is_published', true)
+					->orderBy('tanggal_pemeriksaan', 'desc')
+					->get();
 			}
 		}
 
@@ -169,7 +172,10 @@ class ClientController extends Controller
 			$participant = Participant::where('nik_ktp', $user->nik_ktp)->first();
 			
 			if ($participant) {
-				$mcuResults = $participant->mcuResults()->orderBy('tanggal_pemeriksaan', 'desc')->paginate(10);
+				$mcuResults = $participant->mcuResults()
+					->where('is_published', true)
+					->orderBy('tanggal_pemeriksaan', 'desc')
+					->paginate(10);
 			}
 		}
 
@@ -181,8 +187,8 @@ class ClientController extends Controller
 		$user = Auth::user();
 		$mcuResult = McuResult::findOrFail($id);
 
-		// Check if user has access to this result
-		if ($user->nik_ktp && $mcuResult->participant->nik_ktp === $user->nik_ktp) {
+		// Check if user has access to this result and if it's published
+		if ($user->nik_ktp && $mcuResult->participant->nik_ktp === $user->nik_ktp && $mcuResult->is_published) {
 			if ($mcuResult->hasFile()) {
 				$mcuResult->markAsDownloaded();
 				// Prefer first file from multi if available
@@ -206,8 +212,8 @@ class ClientController extends Controller
 		$user = Auth::user();
 		$mcuResult = McuResult::findOrFail($id);
 
-		// Authorization: ensure result belongs to logged-in participant
-		if (!($user->nik_ktp && $mcuResult->participant->nik_ktp === $user->nik_ktp)) {
+		// Authorization: ensure result belongs to logged-in participant and is published
+		if (!($user->nik_ktp && $mcuResult->participant->nik_ktp === $user->nik_ktp && $mcuResult->is_published)) {
 			abort(403);
 		}
 

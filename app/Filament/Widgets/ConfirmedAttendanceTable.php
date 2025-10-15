@@ -74,6 +74,7 @@ class ConfirmedAttendanceTable extends BaseWidget
                             'status_kesehatan' => 'Sehat',
                             'hasil_pemeriksaan' => '',
                             'uploaded_by' => $uploadedBy,
+                            'is_published' => false, // Not visible to participant until results are inputted
                         ]
                     );
                 }),
