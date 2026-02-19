@@ -19,34 +19,6 @@ use App\Notifications\NewRegistrationNotification;
 
 class ClientController extends Controller
 {
-	public function dashboard()
-	{
-		$user = Auth::user();
-		$participant = null;
-		$schedules = collect();
-		$mcuResults = collect();
-		// Total antrian harian yang aktif (belum selesai/batal/ditolak) - cached for 5 minutes
-		$todayQueueTotal = cache()->remember('today_queue_total_' . now()->toDateString(), 300, function () {
-			return Schedule::whereDate('tanggal_pemeriksaan', now()->toDateString())
-				->where('status', 'Terjadwal')
-				->count();
-		});
-
-		if ($user->nik_ktp) {
-			$participant = Participant::where('nik_ktp', $user->nik_ktp)->first();
-			
-			if ($participant) {
-				$schedules = $participant->schedules()->orderBy('tanggal_pemeriksaan', 'desc')->get();
-				$mcuResults = $participant->mcuResults()
-					->where('is_published', true)
-					->orderBy('tanggal_pemeriksaan', 'desc')
-					->get();
-			}
-		}
-
-		return view('client.dashboard', compact('participant', 'schedules', 'mcuResults', 'todayQueueTotal'));
-	}
-
 	public function profile()
 	{
 		$user = Auth::user();
@@ -305,7 +277,7 @@ class ClientController extends Controller
 			'email' => $participant->email,
 			'tanggal_pemeriksaan' => $request->tanggal_pemeriksaan,
 			'jam_pemeriksaan' => $request->jam_pemeriksaan,
-			'lokasi_pemeriksaan' => $request->lokasi_pemeriksaan,
+			'lokasi_pemeriksaan' => config('mcu.default_location'),
 			'status' => 'Terjadwal',
 			'catatan' => $request->catatan,
 		]);

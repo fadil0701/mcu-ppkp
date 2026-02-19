@@ -4,8 +4,10 @@ namespace App\Filament\Widgets;
 
 use App\Models\Participant;
 use App\Models\McuResult;
+use App\Services\QueryOptimizationService;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class McuChart extends ChartWidget
 {
@@ -16,27 +18,8 @@ class McuChart extends ChartWidget
 
     protected function getData(): array
     {
-        // Cache for 10 minutes
-        $chartData = cache()->remember('mcu_chart_data', 600, function () {
-            $startDate = Carbon::now()->subMonths(5)->startOfMonth();
-            $endDate = Carbon::now()->endOfMonth();
-
-            // Get participants data grouped by month
-            $participantsData = Participant::selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count")
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->groupBy('month')
-                ->orderBy('month')
-                ->pluck('count', 'month');
-
-            // Get MCU results data grouped by month
-            $mcuResultsData = McuResult::selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count")
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->groupBy('month')
-                ->orderBy('month')
-                ->pluck('count', 'month');
-            
-            return compact('participantsData', 'mcuResultsData');
-        });
+        // Use optimized query service
+        $chartData = QueryOptimizationService::getChartData(6);
 
         $participantsData = $chartData['participantsData'];
         $mcuResultsData = $chartData['mcuResultsData'];

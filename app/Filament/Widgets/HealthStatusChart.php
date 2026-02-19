@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\McuResult;
+use App\Services\QueryOptimizationService;
 use Filament\Widgets\ChartWidget;
 
 class HealthStatusChart extends ChartWidget
@@ -14,14 +15,13 @@ class HealthStatusChart extends ChartWidget
 
     protected function getData(): array
     {
-        // Cache for 10 minutes
-        $counts = cache()->remember('health_status_chart', 600, function () {
-            return [
-                'Sehat' => McuResult::where('status_kesehatan', 'Sehat')->count(),
-                'Kurang Sehat' => McuResult::where('status_kesehatan', 'Kurang Sehat')->count(),
-                'Tidak Sehat' => McuResult::where('status_kesehatan', 'Tidak Sehat')->count(),
-            ];
-        });
+        // Use optimized query service
+        $healthStats = QueryOptimizationService::getHealthStatusDistribution();
+        
+        $counts = [];
+        foreach ($healthStats as $stat) {
+            $counts[$stat->status_kesehatan] = $stat->count;
+        }
 
         return [
             'datasets' => [

@@ -1,0 +1,115 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Imports\DiagnosesImport;
+use App\Models\Diagnosis;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
+
+class DiagnosisController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            if (!auth()->user()?->hasRole('super_admin')) {
+                abort(403, 'Hanya super admin yang dapat mengakses Master Diagnosis.');
+            }
+            return $next($request);
+        });
+    }
+
+    public function index(Request $request)
+    {
+        $query = Diagnosis::query()->orderBy('name');
+        if ($request->filled('search')) {
+            $q = $request->search;
+            $query->where(function ($qry) use ($q) {
+                $qry->where('name', 'like', "%{$q}%")
+                    ->orWhere('code', 'like', "%{$q}%")
+                    ->orWhere('description', 'like', "%{$q}%");
+            });
+        }
+        if ($request->filled('is_active')) {
+            if ($request->is_active === '1') {
+                $query->where('is_active', true);
+            } elseif ($request->is_active === '0') {
+                $query->where('is_active', false);
+            }
+        }
+        $diagnoses = $query->paginate(15)->withQueryString();
+        return view('admin.diagnoses.index', compact('diagnoses'));
+    }
+
+    public function create()
+    {
+        return view('admin.diagnoses.create');
+    }
+
+    public function store(Request $request)
+    {
+        $valid = $request->validate([
+            'code' => 'nullable|string|max:50',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'is_active' => 'nullable|boolean',
+        ]);
+        $valid['is_active'] = (bool) ($request->boolean('is_active', true));
+        Diagnosis::create($valid);
+        return redirect()->route('admin.diagnoses.index')->with('success', 'Diagnosis berhasil ditambahkan.');
+    }
+
+    public function edit(Diagnosis $diagnosis)
+    {
+        return view('admin.diagnoses.edit', compact('diagnosis'));
+    }
+
+    public function update(Request $request, Diagnosis $diagnosis)
+    {
+        $valid = $request->validate([
+            'code' => 'nullable|string|max:50',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'is_active' => 'nullable|boolean',
+        ]);
+        $valid['is_active'] = (bool) ($request->boolean('is_active', true));
+        $diagnosis->update($valid);
+        return redirect()->route('admin.diagnoses.index')->with('success', 'Diagnosis berhasil diubah.');
+    }
+
+    public function destroy(Diagnosis $diagnosis)
+    {
+        $diagnosis->delete();
+        return redirect()->route('admin.diagnoses.index')->with('success', 'Diagnosis berhasil dihapus.');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
+        ]);
+
+        $file = $request->file('file');
+        $extension = strtolower($file->getClientOriginalExtension());
+        $allowed = ['xlsx', 'xls', 'csv'];
+        if (!in_array($extension, $allowed, true)) {
+            return redirect()->route('admin.diagnoses.index')
+                ->with('error', 'Format file tidak didukung. Gunakan XLSX, XLS, atau CSV.');
+        }
+
+        try {
+            $stored = $file->storeAs('imports', 'diagnoses_' . now()->format('Ymd_His') . '.' . $extension, 'public');
+            $fullPath = Storage::disk('public')->path($stored);
+            $import = new DiagnosesImport();
+            Excel::import($import, $fullPath);
+            $stats = $import->getImportStats();
+            $msg = sprintf('Import selesai. Ditambahkan: %d, Diubah: %d, Dilewati: %d, Error: %d.', $stats['imported'], $stats['updated'], $stats['skipped'], count($stats['errors'] ?? []));
+            return redirect()->route('admin.diagnoses.index')->with('success', $msg);
+        } catch (\Throwable $e) {
+            return redirect()->route('admin.diagnoses.index')
+                ->with('error', 'Import gagal: ' . $e->getMessage());
+        }
+    }
+}

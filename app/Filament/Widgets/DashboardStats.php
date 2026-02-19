@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Models\Participant;
 use App\Models\Schedule;
 use App\Models\McuResult;
+use App\Services\QueryOptimizationService;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\DB;
@@ -16,17 +17,8 @@ class DashboardStats extends BaseWidget
     
     protected function getStats(): array
     {
-        // Cache for 5 minutes to reduce database load
-        $data = cache()->remember('dashboard_stats', 300, function () {
-            $stats = DB::select("
-                SELECT 
-                    (SELECT COUNT(*) FROM participants) as total_participants,
-                    (SELECT COUNT(*) FROM schedules WHERE status = 'Terjadwal') as scheduled_participants,
-                    (SELECT COUNT(*) FROM mcu_results) as completed_mcu,
-                    (SELECT COUNT(*) FROM schedules WHERE status = 'Terjadwal' AND tanggal_pemeriksaan >= CURDATE()) as pending_mcu
-            ");
-            return $stats[0];
-        });
+        // Use optimized query service
+        $data = QueryOptimizationService::getDashboardStats();
 
         return [
             Stat::make('Total Peserta', $data->total_participants)

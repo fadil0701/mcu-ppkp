@@ -13,6 +13,9 @@ return [
     // Interval MCU dalam tahun
     'interval_years' => env('MCU_INTERVAL_YEARS', 3),
 
+    // Lokasi klinik permanen untuk jadwal MCU
+    'default_location' => env('MCU_DEFAULT_LOCATION', 'Klinik Utama Balaikota'),
+
     // Status pegawai yang diizinkan
     'allowed_employee_status' => [
         'CPNS',

@@ -333,7 +333,7 @@
     <!-- Sidebar -->
     <nav class="sidebar">
         <div class="sidebar-header">
-            <a href="{{ route('client.dashboard') }}" class="sidebar-brand">
+            <a href="{{ route('dashboard') }}" class="sidebar-brand">
                 <i class="fas fa-heartbeat me-2"></i>
                 MCU PPKP DKI
             </a>
@@ -341,7 +341,7 @@
         
         <div class="sidebar-nav">
             <div class="nav-item">
-                <a href="{{ route('client.dashboard') }}" class="nav-link {{ request()->routeIs('client.dashboard') ? 'active' : '' }}">
+                <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                     <i class="fas fa-tachometer-alt"></i>
                     Dashboard
                 </a>

@@ -89,9 +89,46 @@ class EmailTemplate extends Model
                 'examination_location' => 'Lokasi pemeriksaan',
                 'app_name' => 'Nama aplikasi',
             ],
+            'notification' => [
+                'participant_name' => 'Nama peserta',
+                'participant_email' => 'Email peserta',
+                'participant_phone' => 'Nomor telepon peserta',
+                'examination_date' => 'Tanggal pemeriksaan',
+                'examination_time' => 'Jam pemeriksaan',
+                'examination_location' => 'Lokasi pemeriksaan',
+                'queue_number' => 'Nomor antrian',
+                'skpd' => 'SKPD',
+                'ukpd' => 'UKPD',
+                'app_name' => 'Nama aplikasi',
+            ],
+            'custom' => [
+                'participant_name' => 'Nama peserta',
+                'participant_email' => 'Email peserta',
+                'participant_phone' => 'Nomor telepon peserta',
+                'examination_date' => 'Tanggal pemeriksaan',
+                'examination_time' => 'Jam pemeriksaan',
+                'examination_location' => 'Lokasi pemeriksaan',
+                'queue_number' => 'Nomor antrian',
+                'skpd' => 'SKPD',
+                'ukpd' => 'UKPD',
+                'app_name' => 'Nama aplikasi',
+            ],
         ];
 
         return $defaultVariables[$this->type] ?? [];
+    }
+
+    /**
+     * Get all available variables grouped by template type (for form variable tags).
+     */
+    public static function getVariablesByType(): array
+    {
+        $types = ['mcu_invitation', 'reminder', 'notification', 'custom'];
+        $out = [];
+        foreach ($types as $type) {
+            $out[$type] = (new static(['type' => $type]))->getAvailableVariables();
+        }
+        return $out;
     }
 
     /**

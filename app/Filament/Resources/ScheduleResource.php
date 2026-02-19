@@ -295,6 +295,9 @@ class ScheduleResource extends Resource
                             $success = $emailService->sendMcuInvitation($record);
                             
                             if ($success) {
+                                // Log the action
+                                $record->logAction('sent_email', 'Email invitation sent to participant');
+                                
                                 \Filament\Notifications\Notification::make()
                                     ->title('Email sent successfully!')
                                     ->body('Using email template from Settings')
@@ -326,17 +329,28 @@ class ScheduleResource extends Resource
                         // Send WhatsApp invitation
                         try {
                             $whatsappService = new \App\Services\WhatsAppService();
-                            $whatsappService->sendMcuInvitation($record);
+                            $success = $whatsappService->sendMcuInvitation($record);
                             
-                            $record->update([
-                                'whatsapp_sent' => true,
-                                'whatsapp_sent_at' => now(),
-                            ]);
-                            
-                            \Filament\Notifications\Notification::make()
-                                ->title('WhatsApp sent successfully')
-                                ->success()
-                                ->send();
+                            if ($success) {
+                                $record->update([
+                                    'whatsapp_sent' => true,
+                                    'whatsapp_sent_at' => now(),
+                                ]);
+                                
+                                // Log the action
+                                $record->logAction('sent_whatsapp', 'WhatsApp invitation sent to participant');
+                                
+                                \Filament\Notifications\Notification::make()
+                                    ->title('WhatsApp sent successfully')
+                                    ->success()
+                                    ->send();
+                            } else {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Failed to send WhatsApp')
+                                    ->body('Check the logs for more details')
+                                    ->danger()
+                                    ->send();
+                            }
                         } catch (\Exception $e) {
                             \Filament\Notifications\Notification::make()
                                 ->title('Failed to send WhatsApp')
@@ -357,28 +371,14 @@ class ScheduleResource extends Resource
                         ->color('success')
                         ->requiresConfirmation()
                         ->action(function (array $records) {
-                            $emailService = new \App\Services\EmailService();
-                            $whatsappService = new \App\Services\WhatsAppService();
-                            $successCount = 0;
-                            $errorCount = 0;
+                            $scheduleIds = collect($records)->pluck('id')->toArray();
                             
-                            foreach ($records as $record) {
-                                try {
-                                    // Send email using template from Settings
-                                    $emailService->sendMcuInvitation($record);
-                                    
-                                    // Send WhatsApp using template from Settings
-                                    $whatsappService->sendMcuInvitation($record);
-                                    
-                                    $successCount++;
-                                } catch (\Exception $e) {
-                                    $errorCount++;
-                                }
-                            }
+                            // Dispatch job to queue
+                            \App\Jobs\SendBulkNotificationsJob::dispatch($scheduleIds, 'both', 10);
                             
                             \Filament\Notifications\Notification::make()
-                                ->title("Bulk invitations sent")
-                                ->body("Success: {$successCount}, Failed: {$errorCount}")
+                                ->title("Bulk notifications queued")
+                                ->body("Notifications are being processed in the background. Check logs for progress.")
                                 ->success()
                                 ->send();
                         }),

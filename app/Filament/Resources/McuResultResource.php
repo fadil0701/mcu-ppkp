@@ -167,17 +167,29 @@ class McuResultResource extends Resource
 							->directory('mcu-results')
 							->multiple()
 							->preserveFilenames()
-							->acceptedFileTypes([
-								'application/pdf',
-								'application/msword',
-								'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-								'image/*',
-							])
+							->acceptedFileTypes(\App\Services\FileValidationService::getAllowedFileTypes())
 							->maxFiles(10)
 							->maxSize(10240)
 							->helperText('Unggah hingga 10 file: PDF, DOC, DOCX, atau gambar (maks 10MB per file)')
 							->downloadable()
-							->previewable(),
+							->previewable()
+							->rules([
+								function () {
+									return function (string $attribute, $value, \Closure $fail) {
+										if (is_array($value)) {
+											foreach ($value as $file) {
+												if ($file instanceof \Illuminate\Http\UploadedFile) {
+													$errors = \App\Services\FileValidationService::validate($file);
+													if (!empty($errors)) {
+														$fail(implode(' ', $errors));
+														return;
+													}
+												}
+											}
+										}
+									};
+								},
+							]),
 					])
 					->collapsible(),
 

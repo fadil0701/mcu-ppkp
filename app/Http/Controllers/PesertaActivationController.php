@@ -91,7 +91,7 @@ class PesertaActivationController extends Controller
         $request->session()->forget('aktivasi_peserta_id');
 
         Auth::login($user);
-        return redirect('/client/dashboard')->with('success', 'Akun berhasil dibuat. Selamat datang!');
+        return redirect()->route('dashboard')->with('success', 'Akun berhasil dibuat. Selamat datang!');
     }
 }
 

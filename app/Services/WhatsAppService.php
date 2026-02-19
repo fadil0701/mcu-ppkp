@@ -90,15 +90,17 @@ class WhatsAppService
         try {
             Log::info("Sending WhatsApp via Fonnte to {$phoneNumber}");
             
-            $response = Http::withOptions([
-                'verify' => false, // Disable SSL verification for local development
-            ])->withHeaders([
-                'Authorization' => $token,
-            ])->post('https://api.fonnte.com/send', [
-                'target' => $phoneNumber,
-                'message' => $message,
-                'countryCode' => '62',
-            ]);
+            $response = Http::timeout(30)
+                ->retry(3, 1000) // Retry 3 times with 1 second delay
+                ->withOptions([
+                    'verify' => false, // Disable SSL verification for local development
+                ])->withHeaders([
+                    'Authorization' => $token,
+                ])->post('https://api.fonnte.com/send', [
+                    'target' => $phoneNumber,
+                    'message' => $message,
+                    'countryCode' => '62',
+                ]);
 
             $responseData = $response->json();
             Log::info('Fonnte API response: ' . json_encode($responseData));
@@ -112,12 +114,36 @@ class WhatsAppService
                 
                 // If status is not true, log the reason
                 $reason = $responseData['reason'] ?? 'Unknown error';
-                Log::error("Fonnte API returned false status: {$reason}");
+                $message = $responseData['message'] ?? 'No message';
+                Log::error("Fonnte API returned false status: {$reason} - {$message}");
                 return false;
             } else {
-                Log::error('Fonnte API HTTP error: ' . $response->status() . ' - ' . $response->body());
+                $errorBody = $response->body();
+                Log::error('Fonnte API HTTP error: ' . $response->status() . ' - ' . $errorBody);
+                
+                // Handle specific HTTP status codes
+                switch ($response->status()) {
+                    case 401:
+                        Log::error('Fonnte API: Unauthorized - Check your token');
+                        break;
+                    case 429:
+                        Log::error('Fonnte API: Rate limited - Too many requests');
+                        break;
+                    case 500:
+                        Log::error('Fonnte API: Server error - Try again later');
+                        break;
+                    default:
+                        Log::error('Fonnte API: Unknown error');
+                }
+                
                 return false;
             }
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            Log::error('Fonnte connection error: ' . $e->getMessage());
+            return false;
+        } catch (\Illuminate\Http\Client\RequestException $e) {
+            Log::error('Fonnte request error: ' . $e->getMessage());
+            return false;
         } catch (\Exception $e) {
             Log::error('Fonnte exception: ' . $e->getMessage());
             return false;

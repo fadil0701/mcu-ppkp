@@ -112,9 +112,46 @@ class PdfTemplate extends Model
                 'examination_location' => 'Lokasi pemeriksaan',
                 'organization_name' => 'Nama organisasi',
             ],
+            'custom' => [
+                'letter_number' => 'Nomor surat',
+                'letter_date' => 'Tanggal surat',
+                'participant_name' => 'Nama peserta',
+                'participant_nik' => 'NIK peserta',
+                'participant_birth_date' => 'Tanggal lahir peserta',
+                'participant_gender' => 'Jenis kelamin peserta',
+                'participant_skpd' => 'SKPD peserta',
+                'participant_unit' => 'Unit kerja peserta',
+                'examination_day' => 'Hari pemeriksaan',
+                'examination_date' => 'Tanggal pemeriksaan',
+                'examination_time' => 'Waktu pemeriksaan',
+                'examination_location' => 'Lokasi pemeriksaan',
+                'contact_person' => 'Nama PIC',
+                'contact_phone' => 'Nomor telepon PIC',
+                'organization_name' => 'Nama organisasi',
+                'organization_address' => 'Alamat organisasi',
+                'organization_phone' => 'Nomor telepon organisasi',
+                'organization_fax' => 'Nomor fax organisasi',
+                'organization_email' => 'Email organisasi',
+                'signature_name' => 'Nama penandatangan',
+                'signature_title' => 'Jabatan penandatangan',
+                'signature_nip' => 'NIP penandatangan',
+            ],
         ];
 
         return $defaultVariables[$this->type] ?? [];
+    }
+
+    /**
+     * Get all available variables grouped by template type (for form variable tags).
+     */
+    public static function getVariablesByType(): array
+    {
+        $types = ['mcu_letter', 'reminder_letter', 'custom'];
+        $out = [];
+        foreach ($types as $type) {
+            $out[$type] = (new static(['type' => $type]))->getAvailableVariables();
+        }
+        return $out;
     }
 
     /**

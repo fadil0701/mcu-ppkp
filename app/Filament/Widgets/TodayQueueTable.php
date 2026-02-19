@@ -13,16 +13,17 @@ class TodayQueueTable extends BaseWidget
 {
 	protected static ?string $heading = 'Antrian MCU Hari Ini';
 
-    protected static ?string $pollingInterval = '30s';
+    protected static ?string $pollingInterval = '2m'; // Reduce polling frequency
 
 	protected int|string|array $columnSpan = 'full';
 
 	protected function getTableQuery(): Builder
 	{
         return Schedule::query()
-            ->with('participant')
+            ->with(['participant:id,nama_lengkap,nik_ktp']) // Only load needed fields
             ->whereDate('tanggal_pemeriksaan', now()->toDateString())
-            ->latest('jam_pemeriksaan');
+            ->latest('jam_pemeriksaan')
+            ->limit(50); // Limit results for better performance
 	}
 
 	protected function getTableColumns(): array

@@ -24,11 +24,15 @@ class Dashboard extends BaseDashboard
     public function getWidgets(): array
     {
         return [
+            // Critical widgets loaded first (non-lazy)
             DashboardStats::class,
+            
+            // All other widgets are lazy loaded for better performance
             McuChart::class,
             HealthStatusChart::class,
             SkpdStats::class,
             \App\Filament\Widgets\ConfirmedAttendanceTable::class,
+            \App\Filament\Widgets\SystemHealthWidget::class,
         ];
     }
 

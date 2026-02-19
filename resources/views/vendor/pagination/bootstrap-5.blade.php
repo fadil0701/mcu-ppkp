@@ -1,55 +1,51 @@
 @if ($paginator->hasPages())
-    <nav class="d-flex justify-content-center mt-4">
-        <div class="d-flex align-items-center">
-            {{-- Previous Page Link --}}
+    <nav class="mt-4 flex flex-wrap items-center justify-center gap-2">
+        <div class="inline-flex items-center overflow-hidden rounded-lg border border-gray-200 bg-white text-theme-sm shadow-theme-xs dark:border-gray-800 dark:bg-gray-800">
+            {{-- Previous («) --}}
             @if ($paginator->onFirstPage())
-                <span class="btn btn-outline-secondary btn-sm disabled me-2">
-                    <i class="fas fa-chevron-left"></i> Previous
+                <span class="inline-flex items-center px-3 py-2 text-gray-400 dark:text-gray-500" aria-disabled="true">
+                    <span aria-hidden="true">&laquo;</span>
                 </span>
             @else
-                <a href="{{ $paginator->previousPageUrl() }}" class="btn btn-outline-primary btn-sm me-2" rel="prev">
-                    <i class="fas fa-chevron-left"></i> Previous
+                <a href="{{ $paginator->previousPageUrl() }}" rel="prev" class="inline-flex items-center px-3 py-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700" aria-label="Sebelumnya">
+                    &laquo;
                 </a>
             @endif
 
-            {{-- Pagination Elements --}}
-            <div class="d-flex align-items-center">
-                @foreach ($elements as $element)
-                    {{-- "Three Dots" Separator --}}
-                    @if (is_string($element))
-                        <span class="btn btn-outline-secondary btn-sm disabled mx-1">{{ $element }}</span>
-                    @endif
+            {{-- Page numbers & ellipsis --}}
+            @foreach ($elements as $element)
+                @if (is_string($element))
+                    <span class="inline-flex items-center border-l border-gray-200 px-3 py-2 text-gray-400 dark:border-gray-700 dark:text-gray-500">{{ $element }}</span>
+                @endif
 
-                    {{-- Array Of Links --}}
-                    @if (is_array($element))
-                        @foreach ($element as $page => $url)
-                            @if ($page == $paginator->currentPage())
-                                <span class="btn btn-primary btn-sm mx-1">{{ $page }}</span>
-                            @else
-                                <a href="{{ $url }}" class="btn btn-outline-primary btn-sm mx-1">{{ $page }}</a>
-                            @endif
-                        @endforeach
-                    @endif
-                @endforeach
-            </div>
+                @if (is_array($element))
+                    @foreach ($element as $page => $url)
+                        @if ($page == $paginator->currentPage())
+                            <span class="inline-flex items-center border-l border-gray-200 bg-brand-500 px-3 py-2 font-medium text-white dark:border-gray-700 dark:bg-brand-500" aria-current="page">{{ $page }}</span>
+                        @else
+                            <a href="{{ $url }}" class="inline-flex items-center border-l border-gray-200 px-3 py-2 text-brand-600 hover:bg-gray-100 dark:border-gray-700 dark:text-brand-400 dark:hover:bg-gray-700">{{ $page }}</a>
+                        @endif
+                    @endforeach
+                @endif
+            @endforeach
 
-            {{-- Next Page Link --}}
+            {{-- Next (») --}}
             @if ($paginator->hasMorePages())
-                <a href="{{ $paginator->nextPageUrl() }}" class="btn btn-outline-primary btn-sm ms-2" rel="next">
-                    Next <i class="fas fa-chevron-right"></i>
+                <a href="{{ $paginator->nextPageUrl() }}" rel="next" class="inline-flex items-center border-l border-gray-200 px-3 py-2 text-gray-600 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700" aria-label="Selanjutnya">
+                    &raquo;
                 </a>
             @else
-                <span class="btn btn-outline-secondary btn-sm disabled ms-2">
-                    Next <i class="fas fa-chevron-right"></i>
+                <span class="inline-flex items-center border-l border-gray-200 px-3 py-2 text-gray-400 dark:border-gray-700 dark:text-gray-500" aria-disabled="true">
+                    <span aria-hidden="true">&raquo;</span>
                 </span>
             @endif
         </div>
     </nav>
 
-    {{-- Results Info --}}
-    <div class="d-flex justify-content-center mt-2">
-        <p class="small text-muted mb-0">
-            Menampilkan {{ $paginator->firstItem() }} sampai {{ $paginator->lastItem() }} dari {{ $paginator->total() }} hasil
+    {{-- Results info --}}
+    <div class="mt-2 text-center">
+        <p class="text-theme-xs text-gray-500 dark:text-gray-400">
+            Menampilkan {{ $paginator->firstItem() ?? 0 }} sampai {{ $paginator->lastItem() ?? 0 }} dari {{ $paginator->total() }} hasil
         </p>
     </div>
 @endif

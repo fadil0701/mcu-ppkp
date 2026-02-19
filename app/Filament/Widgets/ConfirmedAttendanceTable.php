@@ -16,7 +16,7 @@ class ConfirmedAttendanceTable extends BaseWidget
     protected static ?string $heading = 'Konfirmasi Hadir - Siap Diselesaikan (Hari Ini)';
 
     // Increased polling interval to reduce server load
-    protected static ?string $pollingInterval = '2m';
+    protected static ?string $pollingInterval = '5m';
 
     protected int|string|array $columnSpan = 'full';
     
@@ -26,11 +26,12 @@ class ConfirmedAttendanceTable extends BaseWidget
     protected function getTableQuery(): Builder
     {
         return Schedule::query()
-            ->with('participant')
+            ->with(['participant:id,nama_lengkap,nik_ktp']) // Only load needed fields
             ->whereDate('tanggal_pemeriksaan', now()->toDateString())
             ->where('status', 'Terjadwal')
             ->where('participant_confirmed', true)
-            ->latest('jam_pemeriksaan');
+            ->latest('jam_pemeriksaan')
+            ->limit(30); // Limit results for better performance
     }
 
     protected function getTableColumns(): array
