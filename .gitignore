@@ -24,6 +24,9 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 
+# Exclude template/source folders
+tailadmin-laravel-main/
+
 # Exclude large files
 *.zip
 *.rar
