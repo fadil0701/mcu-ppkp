@@ -13,6 +13,9 @@
 @endif
 
 <x-common.component-card title="Daftar Setting">
+    <div class="mb-4">
+        <a href="{{ route('admin.settings.create') }}" class="rounded-lg bg-brand-500 px-4 py-2 text-theme-sm font-medium text-white hover:bg-brand-600">Tambah Setting</a>
+    </div>
     <div class="overflow-x-auto">
         <table class="w-full text-theme-sm">
             <thead>

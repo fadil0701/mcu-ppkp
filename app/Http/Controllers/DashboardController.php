@@ -60,6 +60,46 @@ class DashboardController extends Controller
             ->limit(30)
             ->get();
 
+        // Statistik konfirmasi & reschedule (ConfirmRescheduleStatsWidget)
+        $confirmedTodayCount = Schedule::whereDate('tanggal_pemeriksaan', now()->toDateString())
+            ->where('participant_confirmed', true)->count();
+        $pendingRescheduleToday = Schedule::whereDate('reschedule_requested_at', now()->toDateString())
+            ->where('reschedule_requested', true)->count();
+
+        // Antrian lengkap hari ini (TodayQueueTable)
+        $todayQueue = Schedule::query()
+            ->with(['participant:id,nama_lengkap,nik_ktp'])
+            ->whereDate('tanggal_pemeriksaan', now()->toDateString())
+            ->orderBy('jam_pemeriksaan')
+            ->limit(50)
+            ->get();
+
+        // Grafik antrian per jam (DailyQueueChart)
+        $today = now()->toDateString();
+        $hours = range(0, 23);
+        $dailyQueueData = [
+            'labels' => array_map(fn ($h) => sprintf('%02d:00', $h), $hours),
+            'terjadwal' => [],
+            'selesai' => [],
+            'batal' => [],
+            'ditolak' => [],
+        ];
+        foreach (['Terjadwal' => 'terjadwal', 'Selesai' => 'selesai', 'Batal' => 'batal', 'Ditolak' => 'ditolak'] as $status => $key) {
+            $map = array_fill_keys($hours, 0);
+            Schedule::whereDate('tanggal_pemeriksaan', $today)
+                ->where('status', $status)
+                ->get()
+                ->each(function ($s) use (&$map) {
+                    try {
+                        $h = (int) \Carbon\Carbon::parse($s->jam_pemeriksaan ?? '00:00:00')->format('H');
+                        $map[$h] = ($map[$h] ?? 0) + 1;
+                    } catch (\Throwable $e) {
+                        $map[0] = ($map[0] ?? 0) + 1;
+                    }
+                });
+            $dailyQueueData[$key] = array_values($map);
+        }
+
         return view('dashboard.admin', [
             'stats' => $stats,
             'topSkpds' => $topSkpds,
@@ -68,6 +108,10 @@ class DashboardController extends Controller
             'mcuResultsByMonth' => $mcuResultsByMonth,
             'healthStats' => $healthStats,
             'confirmedToday' => $confirmedToday,
+            'confirmedTodayCount' => $confirmedTodayCount,
+            'pendingRescheduleToday' => $pendingRescheduleToday,
+            'todayQueue' => $todayQueue,
+            'dailyQueueData' => $dailyQueueData,
         ]);
     }
 

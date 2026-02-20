@@ -93,16 +93,16 @@
     @if($latestResult)
         <x-common.component-card title="Detail Hasil Terbaru" class="mt-6">
             <div class="grid gap-4 sm:grid-cols-2">
-                <div>
+                <div class="sm:col-span-2">
                     <p class="mb-1 text-theme-sm font-medium text-gray-700 dark:text-gray-300">Hasil Pemeriksaan</p>
-                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 text-theme-sm dark:border-gray-800 dark:bg-gray-900/50">{{ $latestResult->hasil_pemeriksaan }}</div>
-                </div>
-                <div>
-                    <p class="mb-1 text-theme-sm font-medium text-gray-700 dark:text-gray-300">Rekomendasi</p>
-                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 text-theme-sm dark:border-gray-800 dark:bg-gray-900/50">{{ $latestResult->rekomendasi ?: 'Tidak ada rekomendasi khusus' }}</div>
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 text-theme-sm dark:border-gray-800 dark:bg-gray-900/50" style="white-space: pre-line">{!! nl2br(e($latestResult->hasil_pemeriksaan ?? '')) !!}</div>
                 </div>
                 <div class="sm:col-span-2">
-                    <p class="mb-1 text-theme-sm font-medium text-gray-700 dark:text-gray-300">Rekomendasi Dokter Spesialis</p>
+                    <p class="mb-1 text-theme-sm font-medium text-gray-700 dark:text-gray-300">Rekomendasi</p>
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 text-theme-sm dark:border-gray-800 dark:bg-gray-900/50" style="white-space: pre-line">{!! nl2br(e($latestResult->rekomendasi ?: 'Tidak ada rekomendasi khusus')) !!}</div>
+                </div>
+                <div class="sm:col-span-2">
+                    <p class="mb-1 text-theme-sm font-medium text-gray-700 dark:text-gray-300">Rekomendasi Dokter & Dokter Spesialis</p>
                     <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 text-theme-sm dark:border-gray-800 dark:bg-gray-900/50">{{ $latestResult->rekomendasi_dokter_spesialis ?: 'Tidak ada rekomendasi dokter spesialis' }}</div>
                 </div>
             </div>

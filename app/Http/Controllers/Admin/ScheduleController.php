@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Schedule;
 use App\Models\Participant;
+use App\Services\EmailService;
+use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 
 class ScheduleController extends Controller
@@ -106,5 +108,41 @@ class ScheduleController extends Controller
     {
         $schedule->delete();
         return redirect()->route('admin.schedules.index')->with('success', 'Jadwal berhasil dihapus.');
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate(['ids' => 'required|array|min:1', 'ids.*' => 'integer|exists:schedules,id']);
+        $count = Schedule::whereIn('id', $request->ids)->delete();
+        return redirect()->route('admin.schedules.index', $request->only(['search', 'date', 'status']))
+            ->with('success', "{$count} jadwal berhasil dihapus.");
+    }
+
+    public function quickStatus(Request $request, Schedule $schedule)
+    {
+        $request->validate(['status' => 'required|in:Terjadwal,Selesai,Batal,Ditolak']);
+        $schedule->update(['status' => $request->status]);
+        return redirect()->back()->with('success', 'Status jadwal berhasil diubah.');
+    }
+
+    public function sendEmail(Schedule $schedule)
+    {
+        $emailService = new EmailService();
+        if ($emailService->sendMcuInvitation($schedule)) {
+            return redirect()->back()->with('success', 'Email undangan berhasil dikirim ke ' . ($schedule->email ?: $schedule->nama_lengkap) . '.');
+        }
+        return redirect()->back()->withErrors(['send' => 'Gagal mengirim email. Periksa pengaturan SMTP.']);
+    }
+
+    public function sendWhatsApp(Schedule $schedule)
+    {
+        if (empty($schedule->no_telp)) {
+            return redirect()->back()->withErrors(['send' => 'Nomor telepon peserta tidak tersedia.']);
+        }
+        $whatsappService = new WhatsAppService();
+        if ($whatsappService->sendMcuInvitation($schedule)) {
+            return redirect()->back()->with('success', 'WhatsApp undangan berhasil dikirim ke ' . $schedule->nama_lengkap . '.');
+        }
+        return redirect()->back()->withErrors(['send' => 'Gagal mengirim WhatsApp. Periksa pengaturan di Settings.']);
     }
 }

@@ -94,7 +94,11 @@ class McuResult extends Model
     public function getFileUrlsAttribute(): array
     {
         $files = $this->file_hasil_files ?? [];
-        return array_map(fn($path) => asset('storage/' . ltrim($path, '/')), $files);
+        $urls = array_map(fn($path) => asset('storage/' . ltrim($path, '/')), $files);
+        if (empty($urls) && $this->file_hasil) {
+            $urls = [$this->file_url];
+        }
+        return $urls;
     }
 
     public function markAsDownloaded(): void

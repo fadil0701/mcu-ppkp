@@ -10,17 +10,15 @@ class AdminAccessMiddleware
 {
     /**
      * Route prefix yang boleh diakses admin biasa (bukan super_admin).
-     * Tidak mengubah konfigurasi panel agar navigasi Filament tidak redirect ke dashboard.
      */
     protected function allowedRoutePrefixesForAdmin(): array
     {
         return [
-            'filament.admin.auth',
-            'filament.admin.pages.dashboard',
-            'filament.admin.pages.reports',
-            'filament.admin.resources.participants',
-            'filament.admin.resources.schedules',
-            'filament.admin.resources.mcu-results',
+            'dashboard',
+            'admin.reports',
+            'admin.participants',
+            'admin.schedules',
+            'admin.mcu-results',
         ];
     }
 
@@ -28,12 +26,8 @@ class AdminAccessMiddleware
     {
         $currentRoute = $request->route()?->getName() ?? '';
 
-        if (str_contains($currentRoute, 'filament.admin.auth')) {
-            return $next($request);
-        }
-
         if (!auth()->check()) {
-            return redirect()->route('filament.admin.auth.login');
+            return redirect()->route('login');
         }
 
         $user = auth()->user();

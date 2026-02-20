@@ -6,7 +6,7 @@
 <x-common.page-breadcrumb pageTitle="Tambah Hasil MCU" />
 
 <x-common.component-card title="Form Hasil MCU">
-    <form method="POST" action="{{ route('admin.mcu-results.store') }}" class="space-y-4">
+    <form method="POST" action="{{ route('admin.mcu-results.store') }}" enctype="multipart/form-data" class="space-y-4">
         @csrf
         <div class="grid gap-4 sm:grid-cols-2">
             <div class="sm:col-span-2">
@@ -35,8 +35,15 @@
                 </select>
             </div>
             <div class="sm:col-span-2">
-                <label class="mb-1 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">Diagnosis</label>
-                <input type="text" name="diagnosis" value="{{ old('diagnosis') }}" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-theme-sm dark:border-gray-800 dark:bg-gray-800 dark:text-white/90">
+                <x-form.searchable-multi-select
+                    name="diagnosis_ids"
+                    label="Diagnosis (bisa pilih beberapa)"
+                    :options="$diagnoses->map(fn($d) => (object)['id' => $d->id, 'label' => $d->code ? $d->code . ' - ' . $d->name : $d->name])"
+                    value-key="id"
+                    label-key="label"
+                    placeholder="Ketik kode atau nama diagnosis..."
+                    :selected-ids="old('diagnosis_ids', [])"
+                />
             </div>
             <div class="sm:col-span-2">
                 <label class="mb-1 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">Hasil Pemeriksaan</label>
@@ -44,7 +51,24 @@
             </div>
             <div class="sm:col-span-2">
                 <label class="mb-1 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">Rekomendasi</label>
-                <textarea name="rekomendasi" rows="2" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-theme-sm dark:border-gray-800 dark:bg-gray-800 dark:text-white/90">{{ old('rekomendasi') }}</textarea>
+                <textarea name="rekomendasi" rows="3" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-theme-sm dark:border-gray-800 dark:bg-gray-800 dark:text-white/90" placeholder="Tulis rekomendasi secara bebas...">{{ old('rekomendasi') }}</textarea>
+            </div>
+            <div class="sm:col-span-2">
+                <x-form.searchable-multi-select
+                    name="specialist_doctor_ids"
+                    label="Rujukan Dokter Spesialis - bisa pilih beberapa"
+                    :options="$specialistDoctors"
+                    value-key="id"
+                    label-key="name"
+                    sublabel-key="specialty"
+                    placeholder="Ketik nama atau spesialisasi..."
+                    :selected-ids="old('specialist_doctor_ids', [])"
+                />
+            </div>
+            <div class="sm:col-span-2">
+                <label class="mb-1 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">Dokumen Hasil MCU</label>
+                <input type="file" name="file_hasil[]" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.bmp,.tiff" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-theme-sm file:mr-3 file:rounded file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-theme-sm file:font-medium file:text-brand-700 dark:border-gray-800 dark:bg-gray-800 dark:text-white/90 dark:file:bg-brand-500/20 dark:file:text-brand-400">
+                <p class="mt-1 text-theme-xs text-gray-500 dark:text-gray-400">PDF, DOC, DOCX, JPG, PNG. Maks 10MB per file.</p>
             </div>
             <div>
                 <label class="flex items-center gap-2">

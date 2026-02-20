@@ -85,6 +85,30 @@ class DiagnosisController extends Controller
         return redirect()->route('admin.diagnoses.index')->with('success', 'Diagnosis berhasil dihapus.');
     }
 
+    public function downloadTemplate()
+    {
+        $headers = [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ];
+        $columns = [
+            ['code', 'name', 'description', 'is_active'],
+            ['D01', 'Diabetes Melitus Tipe 2', 'Deskripsi singkat diagnosis', '1'],
+            ['H01', 'Hipertensi Esensial', 'Deskripsi singkat diagnosis', '1'],
+        ];
+
+        $tmp = tempnam(sys_get_temp_dir(), 'diagnoses_tpl_') . '.xlsx';
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        foreach ($columns as $rowIndex => $row) {
+            foreach ($row as $colIndex => $value) {
+                $sheet->setCellValueByColumnAndRow($colIndex + 1, $rowIndex + 1, $value);
+            }
+        }
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save($tmp);
+        return response()->download($tmp, 'template_import_diagnosis.xlsx', $headers)->deleteFileAfterSend(true);
+    }
+
     public function import(Request $request)
     {
         $request->validate([

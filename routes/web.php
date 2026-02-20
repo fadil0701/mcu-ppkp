@@ -55,9 +55,15 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::post('participants/import', [AdminParticipantController::class, 'import'])->name('participants.import');
     Route::post('participants/bulk-delete', [AdminParticipantController::class, 'bulkDestroy'])->name('participants.bulk-destroy');
     Route::resource('participants', AdminParticipantController::class);
+    Route::post('schedules/bulk-delete', [AdminScheduleController::class, 'bulkDestroy'])->name('schedules.bulk-destroy');
+    Route::post('schedules/{schedule}/quick-status', [AdminScheduleController::class, 'quickStatus'])->name('schedules.quick-status');
+    Route::post('schedules/{schedule}/send-email', [AdminScheduleController::class, 'sendEmail'])->name('schedules.send-email');
+    Route::post('schedules/{schedule}/send-whatsapp', [AdminScheduleController::class, 'sendWhatsApp'])->name('schedules.send-whatsapp');
     Route::resource('schedules', AdminScheduleController::class);
+    Route::post('mcu-results/{mcu_result}', [AdminMcuResultController::class, 'update'])->name('mcu-results.update-post');
     Route::resource('mcu-results', AdminMcuResultController::class)->parameters(['mcu-results' => 'mcu_result']);
     Route::resource('users', AdminUserController::class);
+    Route::get('diagnoses/template', [AdminDiagnosisController::class, 'downloadTemplate'])->name('diagnoses.template');
     Route::post('diagnoses/import', [AdminDiagnosisController::class, 'import'])->name('diagnoses.import');
     Route::resource('diagnoses', AdminDiagnosisController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
     Route::resource('specialist-doctors', AdminSpecialistDoctorController::class)->parameters(['specialist-doctors' => 'specialist_doctor'])->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
@@ -65,6 +71,8 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::resource('pdf-templates', AdminPdfTemplateController::class)->parameters(['pdf-templates' => 'pdf_template'])->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 
     Route::get('settings', [AdminSettingController::class, 'index'])->name('settings.index');
+    Route::get('settings/create', [AdminSettingController::class, 'create'])->name('settings.create');
+    Route::post('settings', [AdminSettingController::class, 'store'])->name('settings.store');
     Route::get('settings/{setting}/edit', [AdminSettingController::class, 'edit'])->name('settings.edit');
     Route::put('settings/{setting}', [AdminSettingController::class, 'update'])->name('settings.update');
     Route::patch('settings/{setting}', [AdminSettingController::class, 'update']);

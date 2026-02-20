@@ -14,21 +14,6 @@ class MenuHelper
                 'name' => 'Dashboard',
                 'path' => route('dashboard'),
             ],
-            [
-                'icon' => 'user-profile',
-                'name' => 'Profile Saya',
-                'path' => route('client.profile'),
-            ],
-            [
-                'icon' => 'calendar',
-                'name' => 'Jadwal MCU',
-                'path' => route('client.schedules'),
-            ],
-            [
-                'icon' => 'task',
-                'name' => 'Hasil MCU',
-                'path' => route('client.results'),
-            ],
         ];
 
         if (Auth::check() && Auth::user()->isAdmin()) {
@@ -85,6 +70,11 @@ class MenuHelper
                 'name' => 'Pengaturan',
                 'path' => route('admin.settings.index'),
             ];
+        } else {
+            // Menu untuk peserta/user
+            $items[] = ['icon' => 'user-profile', 'name' => 'Profile Saya', 'path' => route('client.profile')];
+            $items[] = ['icon' => 'calendar', 'name' => 'Jadwal MCU', 'path' => route('client.schedules')];
+            $items[] = ['icon' => 'task', 'name' => 'Hasil MCU', 'path' => route('client.results')];
         }
 
         return $items;

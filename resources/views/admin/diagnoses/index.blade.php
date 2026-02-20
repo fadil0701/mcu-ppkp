@@ -23,6 +23,10 @@
             </select>
             <button type="submit" class="rounded-lg bg-brand-500 px-4 py-2 text-theme-sm font-medium text-white hover:bg-brand-600">Cari</button>
         </form>
+        <a href="{{ route('admin.diagnoses.template') }}" class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-theme-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-white/5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            Template Import
+        </a>
         <form action="{{ route('admin.diagnoses.import') }}" method="POST" enctype="multipart/form-data" class="inline-flex items-center gap-2">
             @csrf
             <input type="file" name="file" accept=".xlsx,.xls,.csv" required class="rounded-lg border border-gray-200 px-2 py-1.5 text-theme-sm file:mr-2 file:rounded file:border-0 file:bg-brand-50 file:px-3 file:py-1 file:text-theme-sm file:font-medium file:text-brand-700 dark:border-gray-700 dark:file:bg-brand-500/10 dark:file:text-brand-400">

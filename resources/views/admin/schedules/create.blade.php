@@ -24,7 +24,7 @@
             </div>
             <div>
                 <label class="mb-1 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Pemeriksaan *</label>
-                <input type="date" name="tanggal_pemeriksaan" value="{{ old('tanggal_pemeriksaan') }}" min="{{ now()->toDateString() }}" required class="w-full rounded-lg border border-gray-200 px-3 py-2 text-theme-sm dark:border-gray-800 dark:bg-gray-800 dark:text-white/90">
+                <input type="date" name="tanggal_pemeriksaan" value="{{ old('tanggal_pemeriksaan') }}" min="{{ now()->toDateString() }}" onclick="this.showPicker?.()" required class="w-full rounded-lg border border-gray-200 px-3 py-2 text-theme-sm dark:border-gray-800 dark:bg-gray-800 dark:text-white/90">
                 @error('tanggal_pemeriksaan')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
             </div>
             <div>

@@ -8,6 +8,30 @@ use Illuminate\Http\Request;
 
 class SettingController extends Controller
 {
+    public function create()
+    {
+        return view('admin.settings.create');
+    }
+
+    public function store(Request $request)
+    {
+        $valid = $request->validate([
+            'key' => 'required|string|max:255|unique:settings,key',
+            'type' => 'required|in:string,number,boolean,json,textarea',
+            'group' => 'required|in:general,email,whatsapp,mcu,system',
+            'value' => 'nullable|string',
+            'description' => 'nullable|string|max:500',
+        ]);
+        Setting::setValue(
+            $valid['key'],
+            $valid['value'] ?? '',
+            $valid['type'],
+            $valid['group'],
+            $valid['description'] ?? null
+        );
+        return redirect()->route('admin.settings.index')->with('success', 'Setting berhasil ditambahkan.');
+    }
+
     public function index()
     {
         $settings = Setting::orderBy('group')->orderBy('key')->get();

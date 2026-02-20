@@ -75,19 +75,13 @@
         });
     </script>
 
-    <!-- Apply dark mode immediately to prevent flash -->
+    <!-- Apply dark mode immediately to prevent flash (html only - body set on load) -->
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme');
             const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             const theme = savedTheme || systemTheme;
-            if (theme === 'dark') {
-                document.documentElement.classList.add('dark');
-                document.body.classList.add('dark', 'bg-gray-900');
-            } else {
-                document.documentElement.classList.remove('dark');
-                document.body.classList.remove('dark', 'bg-gray-900');
-            }
+            document.documentElement.classList.toggle('dark', theme === 'dark');
         })();
     </script>
     
@@ -115,7 +109,7 @@
         @include('layouts.backdrop')
         @include('layouts.sidebar')
 
-        <div class="flex-1 transition-all duration-300 ease-in-out"
+        <div class="flex-1 min-w-0 flex flex-col overflow-x-hidden transition-all duration-300 ease-in-out"
             :class="{
                 'xl:ml-[290px]': $store.sidebar.isExpanded || $store.sidebar.isHovered,
                 'xl:ml-[90px]': !$store.sidebar.isExpanded && !$store.sidebar.isHovered,
@@ -124,9 +118,11 @@
             <!-- app header start -->
             @include('layouts.app-header')
             <!-- app header end -->
-            <div class="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
-                @yield('content')
-            </div>
+            <main class="flex-1 w-full min-w-0 overflow-x-auto">
+                <div class="w-full max-w-screen-2xl mx-auto p-4 md:p-6 pb-20">
+                    @yield('content')
+                </div>
+            </main>
         </div>
 
     </div>

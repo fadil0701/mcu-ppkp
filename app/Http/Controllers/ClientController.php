@@ -196,11 +196,11 @@ class ClientController extends Controller
 
 		$existingFiles = [];
 		foreach ($files as $relativePath) {
+			$relativePath = ltrim($relativePath, '/');
 			if (Storage::disk('public')->exists($relativePath)) {
-				$existingFiles[] = $relativePath;
+				$existingFiles[] = ['path' => $relativePath, 'name' => basename($relativePath)];
 			}
 		}
-
 		if (empty($existingFiles)) {
 			return back()->withErrors(['download' => 'Tidak ada file yang dapat diunduh.']);
 		}
@@ -217,9 +217,11 @@ class ClientController extends Controller
 			return back()->withErrors(['download' => 'Gagal membuat arsip ZIP.']);
 		}
 
-		foreach ($existingFiles as $relativePath) {
+		foreach ($existingFiles as $item) {
+			$relativePath = $item['path'];
+			$zipName = $item['name'];
 			$fullPath = Storage::disk('public')->path($relativePath);
-			$zip->addFile($fullPath, basename($fullPath));
+			$zip->addFile($fullPath, $zipName);
 		}
 
 		$zip->close();

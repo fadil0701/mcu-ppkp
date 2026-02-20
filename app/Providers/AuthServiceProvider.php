@@ -23,7 +23,7 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        // Bypass all policies for testing Filament CRUD
+        // Bypass all policies (sesuaikan untuk production)
         Gate::before(function ($user, $ability) {
             return true;
         });
