@@ -21,6 +21,7 @@
                     <option value="mcu_invitation" {{ old('type', $emailTemplate->type) === 'mcu_invitation' ? 'selected' : '' }}>MCU Invitation</option>
                     <option value="reminder" {{ old('type', $emailTemplate->type) === 'reminder' ? 'selected' : '' }}>Reminder</option>
                     <option value="notification" {{ old('type', $emailTemplate->type) === 'notification' ? 'selected' : '' }}>Notification</option>
+                    <option value="mcu_result" {{ old('type', $emailTemplate->type) === 'mcu_result' ? 'selected' : '' }}>Hasil MCU</option>
                     <option value="custom" {{ old('type', $emailTemplate->type) === 'custom' ? 'selected' : '' }}>Custom</option>
                 </select>
                 @error('type')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror

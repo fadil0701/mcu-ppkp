@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\McuResult;
 use App\Models\Setting;
 use App\Models\Schedule;
 use Illuminate\Support\Facades\Http;
@@ -207,6 +208,86 @@ class WhatsAppService
             Log::error('Meta exception: ' . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * Send MCU result notification via WhatsApp
+     */
+    public function sendMcuResult(McuResult $result): bool
+    {
+        try {
+            $participant = $result->participant;
+            if (!$participant || empty($participant->no_telp)) {
+                Log::error('MCU result WhatsApp: Participant or phone number not found');
+                return false;
+            }
+
+            $whatsappSettings = Setting::getGroup('whatsapp');
+            $token = $whatsappSettings['whatsapp_token'] ?? '';
+            $instanceId = $whatsappSettings['whatsapp_instance_id'] ?? '';
+            $provider = $this->getProvider();
+
+            if (empty($token)) {
+                Log::error('WhatsApp token not configured');
+                return false;
+            }
+
+            $template = Setting::getValue('whatsapp_result_template', '');
+            if (empty($template)) {
+                $template = "Halo {participant_name},\n\nHasil MCU Anda untuk pemeriksaan tanggal {tanggal_pemeriksaan} telah tersedia.\n\nStatus Kesehatan: {status_kesehatan}\nDiagnosis: {diagnosis}\n\nSilakan login ke {hasil_url} untuk melihat dan mendownload hasil lengkap.\n\nTerima kasih.";
+            }
+
+            $templateData = $this->prepareMcuResultTemplateData($result);
+            $message = $this->renderTemplate($template, $templateData);
+            $phoneNumber = $this->cleanPhoneNumber($participant->no_telp);
+
+            $sendResult = false;
+            switch ($provider) {
+                case 'fonnte':
+                    $sendResult = $this->sendViaFonnte($token, $phoneNumber, $message);
+                    break;
+                case 'wablas':
+                    $sendResult = $this->sendViaWablas($token, $phoneNumber, $message);
+                    break;
+                case 'meta':
+                    if (!empty($instanceId)) {
+                        $sendResult = $this->sendViaMeta($token, $instanceId, $phoneNumber, $message);
+                    }
+                    break;
+                default:
+                    Log::error('Unknown WhatsApp provider: ' . $provider);
+            }
+
+            if ($sendResult) {
+                Log::info("MCU result WhatsApp sent to {$phoneNumber}");
+            }
+            return $sendResult;
+        } catch (\Exception $e) {
+            Log::error('MCU result WhatsApp failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Prepare template data for MCU result
+     */
+    private function prepareMcuResultTemplateData(McuResult $result): array
+    {
+        $participant = $result->participant;
+        $appName = config('app.name', 'Sistem MCU PPKP');
+        $hasilUrl = route('client.results');
+
+        return [
+            'participant_name' => $participant?->nama_lengkap ?? '-',
+            'participant_email' => $participant?->email ?? '-',
+            'participant_phone' => $participant?->no_telp ?? '-',
+            'tanggal_pemeriksaan' => $result->tanggal_pemeriksaan?->format('d/m/Y') ?? '-',
+            'status_kesehatan' => $result->status_kesehatan ?? '-',
+            'diagnosis' => $result->diagnosis_text ?? $result->diagnosis ?? '-',
+            'rekomendasi' => $result->rekomendasi ?? '-',
+            'hasil_url' => $hasilUrl,
+            'app_name' => $appName,
+        ];
     }
 
     public function sendBulkMcuInvitations(array $scheduleIds): array

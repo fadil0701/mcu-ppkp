@@ -10,7 +10,14 @@
         @csrf
         <div>
             <label class="mb-1 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">Nilai</label>
-            <input type="text" name="value" value="{{ old('value', $value) }}" required class="w-full rounded-lg border border-gray-200 px-3 py-2 text-theme-sm dark:border-gray-800 dark:bg-gray-800 dark:text-white/90">
+            @php
+                $useTextarea = $setting->type === 'text' || $setting->type === 'textarea' || str_contains($setting->key, 'template');
+            @endphp
+            @if($useTextarea)
+                <textarea name="value" rows="12" required class="w-full rounded-lg border border-gray-200 px-3 py-2 text-theme-sm dark:border-gray-800 dark:bg-gray-800 dark:text-white/90 font-mono text-theme-sm" placeholder="Masukkan nilai">{{ old('value', $value) }}</textarea>
+            @else
+                <input type="{{ $setting->type === 'number' ? 'number' : 'text' }}" name="value" value="{{ old('value', $value) }}" required class="w-full rounded-lg border border-gray-200 px-3 py-2 text-theme-sm dark:border-gray-800 dark:bg-gray-800 dark:text-white/90">
+            @endif
             @error('value')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
         </div>
         <div class="flex gap-2 pt-4">

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Diagnosis;
 use App\Models\McuResult;
+use App\Services\EmailService;
+use App\Services\WhatsAppService;
 use App\Models\Participant;
 use App\Models\Schedule;
 use App\Models\SpecialistDoctor;
@@ -156,5 +158,31 @@ class McuResultController extends Controller
     {
         $mcu_result->delete();
         return redirect()->route('admin.mcu-results.index')->with('success', 'Hasil MCU berhasil dihapus.');
+    }
+
+    public function sendEmail(McuResult $mcu_result)
+    {
+        $participant = $mcu_result->participant;
+        if (!$participant || empty($participant->email)) {
+            return redirect()->back()->withErrors(['send' => 'Email peserta tidak tersedia.']);
+        }
+        $emailService = new EmailService();
+        if ($emailService->sendMcuResult($mcu_result)) {
+            return redirect()->back()->with('success', 'Email hasil MCU berhasil dikirim ke ' . $participant->email . '.');
+        }
+        return redirect()->back()->withErrors(['send' => 'Gagal mengirim email. Periksa pengaturan SMTP.']);
+    }
+
+    public function sendWhatsApp(McuResult $mcu_result)
+    {
+        $participant = $mcu_result->participant;
+        if (!$participant || empty($participant->no_telp)) {
+            return redirect()->back()->withErrors(['send' => 'Nomor telepon peserta tidak tersedia.']);
+        }
+        $whatsappService = new WhatsAppService();
+        if ($whatsappService->sendMcuResult($mcu_result)) {
+            return redirect()->back()->with('success', 'WhatsApp hasil MCU berhasil dikirim ke ' . $participant->nama_lengkap . '.');
+        }
+        return redirect()->back()->withErrors(['send' => 'Gagal mengirim WhatsApp. Periksa pengaturan di Settings.']);
     }
 }

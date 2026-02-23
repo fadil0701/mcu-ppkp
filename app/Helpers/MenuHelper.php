@@ -57,6 +57,7 @@ class MenuHelper
                     'subItems' => [
                         ['name' => 'Email Templates', 'path' => route('admin.email-templates.index')],
                         ['name' => 'PDF Templates', 'path' => route('admin.pdf-templates.index')],
+                        ['name' => 'Template Email Hasil MCU', 'path' => route('admin.settings.email-result-template')],
                     ],
                 ];
             }

@@ -16,6 +16,7 @@
             <option value="mcu_invitation" {{ request('type') === 'mcu_invitation' ? 'selected' : '' }}>MCU Invitation</option>
             <option value="reminder" {{ request('type') === 'reminder' ? 'selected' : '' }}>Reminder</option>
             <option value="notification" {{ request('type') === 'notification' ? 'selected' : '' }}>Notification</option>
+            <option value="mcu_result" {{ request('type') === 'mcu_result' ? 'selected' : '' }}>Hasil MCU</option>
             <option value="custom" {{ request('type') === 'custom' ? 'selected' : '' }}>Custom</option>
         </select>
         <button type="submit" class="rounded-lg bg-brand-500 px-4 py-2 text-theme-sm font-medium text-white hover:bg-brand-600">Filter</button>

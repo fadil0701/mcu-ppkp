@@ -158,29 +158,37 @@
                         <span class="inline-flex rounded-full px-2 py-0.5 text-theme-xs font-medium {{ $s->status === 'Terjadwal' ? 'bg-warning-100 text-warning-700 dark:bg-warning-500/20' : ($s->status === 'Selesai' ? 'bg-success-100 text-success-700 dark:bg-success-500/20' : ($s->status === 'Batal' ? 'bg-error-100 text-error-700 dark:bg-error-500/20' : 'bg-gray-100 text-gray-700 dark:bg-gray-500/20')) }}">{{ $s->status }}</span>
                     </td>
                     <td class="py-3">
-                        <div class="flex flex-wrap gap-1">
+                        <div class="flex flex-wrap items-center gap-1">
                             @if($s->status !== 'Selesai')
                             <form method="POST" action="{{ route('admin.schedules.quick-status', $s) }}" class="inline" onsubmit="return confirm('Tandai selesai?');">
                                 @csrf
                                 <input type="hidden" name="status" value="Selesai">
-                                <button type="submit" class="text-success-600 hover:underline text-theme-xs">Selesai</button>
+                                <button type="submit" title="Selesai" class="inline-flex items-center justify-center rounded p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-500/10">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                </button>
                             </form>
                             @endif
                             @if($s->status !== 'Ditolak')
                             <form method="POST" action="{{ route('admin.schedules.quick-status', $s) }}" class="inline" onsubmit="return confirm('Tolak jadwal ini?');">
                                 @csrf
                                 <input type="hidden" name="status" value="Ditolak">
-                                <button type="submit" class="text-gray-600 hover:underline text-theme-xs">Tolak</button>
+                                <button type="submit" title="Tolak" class="inline-flex items-center justify-center rounded p-1.5 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                                </button>
                             </form>
                             @endif
                             @if($s->status !== 'Batal')
                             <form method="POST" action="{{ route('admin.schedules.quick-status', $s) }}" class="inline" onsubmit="return confirm('Batalkan jadwal ini?');">
                                 @csrf
                                 <input type="hidden" name="status" value="Batal">
-                                <button type="submit" class="text-error-500 hover:underline text-theme-xs">Batal</button>
+                                <button type="submit" title="Batal" class="inline-flex items-center justify-center rounded p-1.5 text-error-500 hover:bg-error-50 dark:hover:bg-error-500/10">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
                             </form>
                             @endif
-                            <a href="{{ route('admin.schedules.edit', $s) }}" class="text-brand-500 hover:underline text-theme-xs">Edit</a>
+                            <a href="{{ route('admin.schedules.edit', $s) }}" title="Edit" class="inline-flex items-center justify-center rounded p-1.5 text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-500/10">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /></svg>
+                            </a>
                         </div>
                     </td>
                 </tr>

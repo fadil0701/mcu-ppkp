@@ -13,9 +13,21 @@
 @endif
 
 <x-common.component-card title="Daftar Setting">
-    <div class="mb-4">
-        <a href="{{ route('admin.settings.create') }}" class="rounded-lg bg-brand-500 px-4 py-2 text-theme-sm font-medium text-white hover:bg-brand-600">Tambah Setting</a>
-    </div>
+    <form method="GET" class="mb-4 flex flex-wrap items-center gap-2">
+        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari key..." class="rounded-lg border border-gray-200 px-3 py-2 text-theme-sm dark:border-gray-800 dark:bg-gray-800 dark:text-white/90 w-56">
+        <select name="group" class="rounded-lg border border-gray-200 px-3 py-2 text-theme-sm dark:border-gray-800 dark:bg-gray-800 dark:text-white/90">
+            <option value="">Semua Group</option>
+            <option value="general" {{ request('group') === 'general' ? 'selected' : '' }}>General</option>
+            <option value="smtp" {{ request('group') === 'smtp' ? 'selected' : '' }}>SMTP</option>
+            <option value="email_template" {{ request('group') === 'email_template' ? 'selected' : '' }}>Email Template</option>
+            <option value="whatsapp" {{ request('group') === 'whatsapp' ? 'selected' : '' }}>WhatsApp</option>
+            <option value="whatsapp_template" {{ request('group') === 'whatsapp_template' ? 'selected' : '' }}>WhatsApp Template</option>
+            <option value="mcu" {{ request('group') === 'mcu' ? 'selected' : '' }}>MCU</option>
+            <option value="system" {{ request('group') === 'system' ? 'selected' : '' }}>System</option>
+        </select>
+        <button type="submit" class="rounded-lg bg-brand-500 px-4 py-2 text-theme-sm font-medium text-white hover:bg-brand-600">Cari</button>
+        <a href="{{ route('admin.settings.create') }}" class="rounded-lg border border-brand-500 px-4 py-2 text-theme-sm font-medium text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-500/10">Tambah Setting</a>
+    </form>
     <div class="overflow-x-auto">
         <table class="w-full text-theme-sm">
             <thead>
@@ -46,5 +58,6 @@
             </tbody>
         </table>
     </div>
+    <div class="mt-4">{{ $settings->links() }}</div>
 </x-common.component-card>
 @endsection

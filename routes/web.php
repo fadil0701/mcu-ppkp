@@ -61,6 +61,8 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::post('schedules/{schedule}/send-whatsapp', [AdminScheduleController::class, 'sendWhatsApp'])->name('schedules.send-whatsapp');
     Route::resource('schedules', AdminScheduleController::class);
     Route::post('mcu-results/{mcu_result}', [AdminMcuResultController::class, 'update'])->name('mcu-results.update-post');
+    Route::post('mcu-results/{mcu_result}/send-email', [AdminMcuResultController::class, 'sendEmail'])->name('mcu-results.send-email');
+    Route::post('mcu-results/{mcu_result}/send-whatsapp', [AdminMcuResultController::class, 'sendWhatsApp'])->name('mcu-results.send-whatsapp');
     Route::resource('mcu-results', AdminMcuResultController::class)->parameters(['mcu-results' => 'mcu_result']);
     Route::resource('users', AdminUserController::class);
     Route::get('diagnoses/template', [AdminDiagnosisController::class, 'downloadTemplate'])->name('diagnoses.template');
@@ -71,6 +73,8 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::resource('pdf-templates', AdminPdfTemplateController::class)->parameters(['pdf-templates' => 'pdf_template'])->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 
     Route::get('settings', [AdminSettingController::class, 'index'])->name('settings.index');
+    Route::get('settings/email-result-template', [AdminSettingController::class, 'emailResultTemplate'])->name('settings.email-result-template');
+    Route::post('settings/email-result-template', [AdminSettingController::class, 'updateEmailResultTemplate'])->name('settings.update-email-result-template');
     Route::get('settings/create', [AdminSettingController::class, 'create'])->name('settings.create');
     Route::post('settings', [AdminSettingController::class, 'store'])->name('settings.store');
     Route::get('settings/{setting}/edit', [AdminSettingController::class, 'edit'])->name('settings.edit');
@@ -90,7 +94,9 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
 
     Route::get('whatsapp-templates', [AdminWhatsAppTemplatesController::class, 'index'])->name('whatsapp-templates.index');
     Route::post('whatsapp-templates', [AdminWhatsAppTemplatesController::class, 'update'])->name('whatsapp-templates.update');
+    Route::post('whatsapp-templates/result', [AdminWhatsAppTemplatesController::class, 'updateResult'])->name('whatsapp-templates.update-result');
     Route::post('whatsapp-templates/reset', [AdminWhatsAppTemplatesController::class, 'reset'])->name('whatsapp-templates.reset');
+    Route::post('whatsapp-templates/reset-result', [AdminWhatsAppTemplatesController::class, 'resetResult'])->name('whatsapp-templates.reset-result');
 
     Route::get('mcu-results/{record}/download-all', [McuResultDownloadController::class, 'downloadAll'])->name('mcu-results.downloadAll');
 });

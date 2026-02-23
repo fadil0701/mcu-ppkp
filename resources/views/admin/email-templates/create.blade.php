@@ -20,6 +20,7 @@
                     <option value="mcu_invitation" {{ old('type') === 'mcu_invitation' ? 'selected' : '' }}>MCU Invitation</option>
                     <option value="reminder" {{ old('type') === 'reminder' ? 'selected' : '' }}>Reminder</option>
                     <option value="notification" {{ old('type') === 'notification' ? 'selected' : '' }}>Notification</option>
+                    <option value="mcu_result" {{ old('type') === 'mcu_result' ? 'selected' : '' }}>Hasil MCU</option>
                     <option value="custom" {{ old('type') === 'custom' ? 'selected' : '' }}>Custom</option>
                 </select>
                 @error('type')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror

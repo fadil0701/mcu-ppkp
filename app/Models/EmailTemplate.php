@@ -101,6 +101,17 @@ class EmailTemplate extends Model
                 'ukpd' => 'UKPD',
                 'app_name' => 'Nama aplikasi',
             ],
+            'mcu_result' => [
+                'participant_name' => 'Nama peserta',
+                'participant_email' => 'Email peserta',
+                'participant_phone' => 'Nomor telepon peserta',
+                'tanggal_pemeriksaan' => 'Tanggal pemeriksaan',
+                'status_kesehatan' => 'Status kesehatan',
+                'diagnosis' => 'Diagnosis',
+                'rekomendasi' => 'Rekomendasi',
+                'hasil_url' => 'URL halaman hasil MCU',
+                'app_name' => 'Nama aplikasi',
+            ],
             'custom' => [
                 'participant_name' => 'Nama peserta',
                 'participant_email' => 'Email peserta',
@@ -123,7 +134,7 @@ class EmailTemplate extends Model
      */
     public static function getVariablesByType(): array
     {
-        $types = ['mcu_invitation', 'reminder', 'notification', 'custom'];
+        $types = ['mcu_invitation', 'reminder', 'notification', 'mcu_result', 'custom'];
         $out = [];
         foreach ($types as $type) {
             $out[$type] = (new static(['type' => $type]))->getAvailableVariables();
