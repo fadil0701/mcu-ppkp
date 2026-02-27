@@ -120,7 +120,11 @@
             <!-- app header end -->
             <main class="flex-1 w-full min-w-0 overflow-x-auto">
                 <div class="w-full max-w-screen-2xl mx-auto p-4 md:p-6 pb-20">
-                    @yield('content')
+                    @hasSection('content')
+                        @yield('content')
+                    @else
+                        {{ $slot ?? '' }}
+                    @endif
                 </div>
             </main>
         </div>

@@ -61,7 +61,7 @@ class ScheduleController extends Controller
         $valid['email'] = $p->email;
         $valid['status'] = $valid['status'] ?? 'Terjadwal';
         $valid['jam_pemeriksaan'] = \Carbon\Carbon::parse($valid['jam_pemeriksaan'])->format('H:i:s');
-        $valid['lokasi_pemeriksaan'] = config('mcu.default_location');
+        $valid['lokasi_pemeriksaan'] = $valid['lokasi_pemeriksaan'] ?? config('mcu.default_location');
         Schedule::create($valid);
         return redirect()->route('admin.schedules.index')->with('success', 'Jadwal berhasil ditambahkan.');
     }
@@ -96,7 +96,7 @@ class ScheduleController extends Controller
         $schedule->email = $p->email;
         $schedule->tanggal_pemeriksaan = $valid['tanggal_pemeriksaan'];
         $schedule->jam_pemeriksaan = \Carbon\Carbon::parse($valid['jam_pemeriksaan'])->format('H:i:s');
-        $schedule->lokasi_pemeriksaan = config('mcu.default_location');
+        $schedule->lokasi_pemeriksaan = $valid['lokasi_pemeriksaan'] ?? config('mcu.default_location');
         $schedule->status = $valid['status'];
         $schedule->queue_number = $valid['queue_number'] ?? null;
         $schedule->catatan = $valid['catatan'] ?? null;

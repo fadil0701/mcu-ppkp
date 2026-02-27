@@ -23,9 +23,9 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        // Bypass all policies (sesuaikan untuk production)
+        // Return null agar policy/policy lain tetap dijalankan jika ada
         Gate::before(function ($user, $ability) {
-            return true;
+            return null;
         });
     }
 }

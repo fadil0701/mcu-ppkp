@@ -57,13 +57,23 @@ class EmailService
     {
         $smtpSettings = Setting::getGroup('smtp');
         
-        Config::set('mail.mailers.smtp.host', $smtpSettings['smtp_host'] ?? env('MAIL_HOST', 'smtp.gmail.com'));
-        Config::set('mail.mailers.smtp.port', $smtpSettings['smtp_port'] ?? env('MAIL_PORT', 587));
-        Config::set('mail.mailers.smtp.username', $smtpSettings['smtp_username'] ?? env('MAIL_USERNAME', ''));
-        Config::set('mail.mailers.smtp.password', $smtpSettings['smtp_password'] ?? env('MAIL_PASSWORD', ''));
-        Config::set('mail.mailers.smtp.encryption', $smtpSettings['smtp_encryption'] ?? env('MAIL_ENCRYPTION', 'tls'));
-        Config::set('mail.from.address', $smtpSettings['smtp_from_address'] ?? env('MAIL_FROM_ADDRESS', 'noreply@mcu.local'));
-        Config::set('mail.from.name', $smtpSettings['smtp_from_name'] ?? env('MAIL_FROM_NAME', 'Sistem MCU'));
+        // Gunakan Settings, fallback ke .env jika kosong
+        $host = ($smtpSettings['smtp_host'] ?? '') ?: env('MAIL_HOST', 'smtp.gmail.com');
+        $port = ($smtpSettings['smtp_port'] ?? '') ?: env('MAIL_PORT', 587);
+        $username = ($smtpSettings['smtp_username'] ?? '') ?: env('MAIL_USERNAME', '');
+        $password = ($smtpSettings['smtp_password'] ?? '') ?: env('MAIL_PASSWORD', '');
+        $encryption = ($smtpSettings['smtp_encryption'] ?? '') ?: env('MAIL_ENCRYPTION', 'tls');
+        $fromAddress = ($smtpSettings['smtp_from_address'] ?? '') ?: env('MAIL_FROM_ADDRESS', 'noreply@mcu.local');
+        $fromName = ($smtpSettings['smtp_from_name'] ?? '') ?: env('MAIL_FROM_NAME', 'Sistem MCU');
+        
+        Config::set('mail.default', 'smtp');
+        Config::set('mail.mailers.smtp.host', $host);
+        Config::set('mail.mailers.smtp.port', $port);
+        Config::set('mail.mailers.smtp.username', $username);
+        Config::set('mail.mailers.smtp.password', $password);
+        Config::set('mail.mailers.smtp.encryption', $encryption);
+        Config::set('mail.from.address', $fromAddress);
+        Config::set('mail.from.name', $fromName);
     }
 
     /**
@@ -143,7 +153,7 @@ class EmailService
                 if ($isHtml) {
                     $message->html($body);
                 } else {
-                    $message->setBody($body, 'text/plain');
+                    $message->text($body);
                 }
                 foreach ($attachments as $fullPath => $name) {
                     $message->attach($fullPath, ['as' => $name]);

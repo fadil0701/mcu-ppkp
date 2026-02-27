@@ -36,9 +36,9 @@
                 <input type="time" name="jam_pemeriksaan" value="{{ old('jam_pemeriksaan', $schedule->jam_pemeriksaan?->format('H:i')) }}" required class="w-full rounded-lg border border-gray-200 px-3 py-2 text-theme-sm dark:border-gray-800 dark:bg-gray-800 dark:text-white/90">
             </div>
             <div class="sm:col-span-2">
-                <label class="mb-1 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">Lokasi Pemeriksaan</label>
-                <input type="hidden" name="lokasi_pemeriksaan" value="{{ config('mcu.default_location') }}">
-                <p class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-theme-sm text-gray-700 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">{{ config('mcu.default_location') }}</p>
+                <label class="mb-1 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">Lokasi Pemeriksaan *</label>
+                <input type="text" name="lokasi_pemeriksaan" value="{{ old('lokasi_pemeriksaan', $schedule->lokasi_pemeriksaan ?? config('mcu.default_location')) }}" required class="w-full rounded-lg border border-gray-200 px-3 py-2 text-theme-sm dark:border-gray-800 dark:bg-gray-800 dark:text-white/90">
+                @error('lokasi_pemeriksaan')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
             </div>
             <div>
                 <label class="mb-1 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">Status *</label>

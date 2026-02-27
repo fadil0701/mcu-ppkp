@@ -320,7 +320,7 @@
     <nav class="navbar navbar-expand-lg navbar-light fixed-top">
         <div class="container">
             <a class="navbar-brand" href="#">
-                <i src="{{ asset('images/logo.png') }}"></i>
+                <img src="{{ asset('images/logo.png') }}" alt="Logo MCU" class="d-inline-block align-text-top" style="height: 32px;" onerror="this.style.display='none'">
                 MCU PPKP DKI Jakarta
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

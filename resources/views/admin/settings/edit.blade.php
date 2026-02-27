@@ -8,6 +8,7 @@
 <x-common.component-card :title="'Edit: ' . $setting->key">
     <form method="POST" action="{{ route('admin.settings.update', $setting) }}" class="space-y-4">
         @csrf
+        @method('PUT')
         <div>
             <label class="mb-1 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">Nilai</label>
             @php
