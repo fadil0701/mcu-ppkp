@@ -47,8 +47,21 @@ class RescheduleCenterController extends Controller
         }
         $schedule->tanggal_pemeriksaan = $schedule->reschedule_new_date ?? $schedule->tanggal_pemeriksaan;
         $schedule->jam_pemeriksaan = $schedule->reschedule_new_time ?? $schedule->jam_pemeriksaan;
-        $max = Schedule::whereDate('tanggal_pemeriksaan', $schedule->tanggal_pemeriksaan)->where('id', '!=', $schedule->id)->max('queue_number');
-        $schedule->queue_number = ((int) $max) + 1;
+
+        if (!Schedule::hasQuotaAvailable(
+            $schedule->tanggal_pemeriksaan,
+            $schedule->lokasi_pemeriksaan,
+            $schedule->id
+        )) {
+            return redirect()->route('admin.reschedule-center.index')
+                ->with('error', 'Kuota untuk tanggal ' . $schedule->tanggal_pemeriksaan->format('d/m/Y') . ' di lokasi ' . $schedule->lokasi_pemeriksaan . ' sudah penuh.');
+        }
+
+        $schedule->queue_number = Schedule::getNextQueueNumber(
+            $schedule->tanggal_pemeriksaan,
+            $schedule->lokasi_pemeriksaan,
+            $schedule->id
+        );
         $schedule->reschedule_requested = false;
         $schedule->reschedule_new_date = null;
         $schedule->reschedule_new_time = null;

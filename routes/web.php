@@ -40,6 +40,9 @@ Route::prefix('client')->middleware(['auth'])->group(function () {
     Route::get('/results/{result}/download', [ClientController::class, 'downloadResult'])->name('client.results.download');
     Route::get('/results/{result}/download-all', [ClientController::class, 'downloadAllResult'])->name('client.results.downloadAll');
 
+    // API sisa kuota per tanggal (untuk date picker)
+    Route::get('/schedule-quota', [ClientController::class, 'scheduleQuota'])->name('client.schedule-quota');
+
     // Permintaan jadwal MCU ulang oleh peserta
     Route::get('/schedule/request', [ClientController::class, 'requestScheduleForm'])->name('client.schedule.request');
     Route::post('/schedule/request', [ClientController::class, 'storeScheduleRequest'])->name('client.schedule.request.store');

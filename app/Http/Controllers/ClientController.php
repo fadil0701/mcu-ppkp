@@ -47,6 +47,27 @@ class ClientController extends Controller
 		return view('client.schedules', compact('schedules'));
 	}
 
+	/**
+	 * API: sisa kuota per tanggal dan lokasi untuk date picker.
+	 */
+	public function scheduleQuota(Request $request)
+	{
+		$request->validate([
+			'date' => ['required', 'date', 'after_or_equal:today'],
+			'location' => ['nullable', 'string', 'max:500'],
+		]);
+		$date = $request->date;
+		$location = $request->location ?: config('mcu.default_location');
+		$count = Schedule::countForDateAndLocation($date, $location);
+		$quota = config('mcu.quota_per_location_per_day');
+		$remaining = $quota === null ? null : max(0, $quota - $count);
+		return response()->json([
+			'count' => $count,
+			'quota' => $quota,
+			'remaining' => $remaining,
+		]);
+	}
+
 	public function confirmAttendance($id)
 	{
 		$user = Auth::user();
@@ -266,6 +287,12 @@ class ClientController extends Controller
 			'catatan' => ['nullable', 'string', 'max:1000'],
 		]);
 
+		$lokasi = $request->lokasi_pemeriksaan ?: config('mcu.default_location');
+
+		if (!Schedule::hasQuotaAvailable($request->tanggal_pemeriksaan, $lokasi)) {
+			return back()->withErrors(['tanggal_pemeriksaan' => 'Kuota untuk tanggal dan lokasi ini sudah penuh. Silakan pilih tanggal lain.']);
+		}
+
 		$schedule = Schedule::create([
 			'participant_id' => $participant->id,
 			'nik_ktp' => $participant->nik_ktp,
@@ -279,14 +306,18 @@ class ClientController extends Controller
 			'email' => $participant->email,
 			'tanggal_pemeriksaan' => $request->tanggal_pemeriksaan,
 			'jam_pemeriksaan' => $request->jam_pemeriksaan,
-			'lokasi_pemeriksaan' => config('mcu.default_location'),
+			'lokasi_pemeriksaan' => $lokasi,
 			'status' => 'Terjadwal',
 			'catatan' => $request->catatan,
 		]);
 
-        // Assign queue number for the date
-        $max = Schedule::whereDate('tanggal_pemeriksaan', $schedule->tanggal_pemeriksaan)->max('queue_number');
-        $schedule->update(['queue_number' => ((int) $max) + 1]);
+		$schedule->update([
+			'queue_number' => Schedule::getNextQueueNumber(
+				$schedule->tanggal_pemeriksaan,
+				$schedule->lokasi_pemeriksaan,
+				$schedule->id
+			),
+		]);
 
 		// Notify admins about repeat registration (schedule request)
 		User::query()->whereIn('role', ['admin','super_admin'])->get()->each(function (User $admin) use ($participant, $schedule) {

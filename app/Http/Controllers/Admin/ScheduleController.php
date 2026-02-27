@@ -62,7 +62,18 @@ class ScheduleController extends Controller
         $valid['status'] = $valid['status'] ?? 'Terjadwal';
         $valid['jam_pemeriksaan'] = \Carbon\Carbon::parse($valid['jam_pemeriksaan'])->format('H:i:s');
         $valid['lokasi_pemeriksaan'] = $valid['lokasi_pemeriksaan'] ?? config('mcu.default_location');
-        Schedule::create($valid);
+
+        if (!Schedule::hasQuotaAvailable($valid['tanggal_pemeriksaan'], $valid['lokasi_pemeriksaan'])) {
+            return back()->withErrors(['tanggal_pemeriksaan' => 'Kuota untuk tanggal dan lokasi ini sudah penuh.']);
+        }
+
+        $schedule = Schedule::create($valid);
+        $schedule->update(['queue_number' => Schedule::getNextQueueNumber(
+            $schedule->tanggal_pemeriksaan,
+            $schedule->lokasi_pemeriksaan,
+            $schedule->id
+        )]);
+
         return redirect()->route('admin.schedules.index')->with('success', 'Jadwal berhasil ditambahkan.');
     }
 
@@ -81,7 +92,6 @@ class ScheduleController extends Controller
             'jam_pemeriksaan' => 'required|string|max:10',
             'lokasi_pemeriksaan' => 'required|string|max:500',
             'status' => 'required|in:Terjadwal,Selesai,Batal,Ditolak',
-            'queue_number' => 'nullable|integer|min:0',
             'catatan' => 'nullable|string',
         ]);
         $p = Participant::findOrFail($valid['participant_id']);
@@ -98,8 +108,25 @@ class ScheduleController extends Controller
         $schedule->jam_pemeriksaan = \Carbon\Carbon::parse($valid['jam_pemeriksaan'])->format('H:i:s');
         $schedule->lokasi_pemeriksaan = $valid['lokasi_pemeriksaan'] ?? config('mcu.default_location');
         $schedule->status = $valid['status'];
-        $schedule->queue_number = $valid['queue_number'] ?? null;
         $schedule->catatan = $valid['catatan'] ?? null;
+
+        if (in_array($schedule->status, ['Terjadwal', 'Selesai'])) {
+            if (!Schedule::hasQuotaAvailable(
+                $schedule->tanggal_pemeriksaan,
+                $schedule->lokasi_pemeriksaan,
+                $schedule->id
+            )) {
+                return back()->withErrors(['tanggal_pemeriksaan' => 'Kuota untuk tanggal dan lokasi ini sudah penuh.']);
+            }
+            $schedule->queue_number = Schedule::getNextQueueNumber(
+                $schedule->tanggal_pemeriksaan,
+                $schedule->lokasi_pemeriksaan,
+                $schedule->id
+            );
+        } else {
+            $schedule->queue_number = null;
+        }
+
         $schedule->save();
         return redirect()->route('admin.schedules.index')->with('success', 'Jadwal berhasil diubah.');
     }

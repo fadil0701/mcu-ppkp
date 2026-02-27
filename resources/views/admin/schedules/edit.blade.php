@@ -51,7 +51,13 @@
             </div>
             <div>
                 <label class="mb-1 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">No. Antrian</label>
-                <input type="number" name="queue_number" value="{{ old('queue_number', $schedule->queue_number) }}" min="0" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-theme-sm dark:border-gray-800 dark:bg-gray-800 dark:text-white/90">
+                <div class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-theme-sm dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
+                    @if(in_array($schedule->status, ['Terjadwal', 'Selesai']) && $schedule->queue_number)
+                        {{ $schedule->queue_number }} <span class="ml-1 text-theme-xs text-gray-500">(otomatis per tanggal &amp; lokasi)</span>
+                    @else
+                        <span class="text-gray-500">Otomatis diisi saat disimpan</span>
+                    @endif
+                </div>
             </div>
             <div class="sm:col-span-2">
                 <label class="mb-1 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">Catatan</label>

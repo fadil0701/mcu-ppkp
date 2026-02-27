@@ -69,12 +69,18 @@
                                     <div x-data="{ open: false }" class="inline">
                                         <button @click="open = !open" type="button" class="ml-1 rounded-lg border border-warning-300 px-3 py-1.5 text-theme-sm text-warning-700 hover:bg-warning-50 dark:border-warning-700 dark:text-warning-400 dark:hover:bg-warning-500/10">Reschedule</button>
                                         <div x-show="open" class="mt-2 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/50">
-                                            <form method="POST" action="{{ route('client.schedule.reschedule', $schedule->id) }}" class="flex flex-wrap items-end gap-2">
+                                            <form method="POST" action="{{ route('client.schedule.reschedule', $schedule->id) }}" class="flex flex-wrap items-end gap-2" x-data="rescheduleForm({{ json_encode($schedule->lokasi_pemeriksaan ?? config('mcu.default_location')) }})">
                                                 @csrf
-                                                <input type="date" name="new_date" class="rounded-lg border border-gray-200 px-3 py-2 text-theme-sm dark:border-gray-800 dark:bg-gray-800" min="{{ now()->toDateString() }}" required>
+                                                <div class="relative">
+                                                    <input type="text" name="new_date" x-ref="dateInput" readonly placeholder="dd/mm/yyyy" class="min-w-[140px] rounded-lg border border-gray-200 px-3 py-2 pr-9 text-theme-sm dark:border-gray-800 dark:bg-gray-800" required>
+                                                    <span class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" class="size-5"><path fill-rule="evenodd" clip-rule="evenodd" d="M8 2C8.41421 2 8.75 2.33579 8.75 2.75V3.75H15.25V2.75C15.25 2.33579 15.5858 2 16 2C16.4142 2 16.75 2.33579 16.75 2.75V3.75H18.5C19.7426 3.75 20.75 4.75736 20.75 6V9V19C20.75 20.2426 19.7426 21.25 18.5 21.25H5.5C4.25736 21.25 3.25 20.2426 3.25 19V9V6C3.25 4.75736 4.25736 3.75 5.5 3.75H7.25V2.75C7.25 2.33579 7.58579 2 8 2Z" fill="currentColor"></path></svg>
+                                                    </span>
+                                                </div>
                                                 <input type="time" name="new_time" class="rounded-lg border border-gray-200 px-3 py-2 text-theme-sm dark:border-gray-800 dark:bg-gray-800" required>
                                                 <input type="text" name="reason" class="min-w-[180px] rounded-lg border border-gray-200 px-3 py-2 text-theme-sm dark:border-gray-800 dark:bg-gray-800" placeholder="Alasan reschedule" required>
                                                 <button type="submit" class="rounded-lg bg-brand-500 px-3 py-2 text-theme-sm font-medium text-white hover:bg-brand-600">Kirim Permintaan</button>
+                                                <p x-show="quotaText" x-text="quotaText" class="w-full text-theme-sm mt-1" :class="quotaError ? 'text-error-600 dark:text-error-400' : 'text-gray-600 dark:text-gray-400'"></p>
                                             </form>
                                         </div>
                                     </div>
@@ -107,4 +113,50 @@
         </div>
     @endif
 </x-common.component-card>
+
+@push('scripts')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('rescheduleForm', (location) => ({
+        fp: null,
+        quotaText: '',
+        quotaError: false,
+        init() {
+            this.$nextTick(() => {
+                const input = this.$refs.dateInput;
+                if (typeof flatpickr === 'undefined') return;
+                this.fp = flatpickr(input, {
+                    locale: 'id',
+                    dateFormat: 'Y-m-d',
+                    altInput: true,
+                    altFormat: 'd/m/Y',
+                    minDate: 'today',
+                    onChange: (dates, dateStr) => this.fetchQuota(dateStr, location)
+                });
+            });
+        },
+        async fetchQuota(dateStr, location) {
+            if (!dateStr) { this.quotaText = ''; return; }
+            try {
+                const r = await fetch('{{ route('client.schedule-quota') }}?date=' + encodeURIComponent(dateStr) + '&location=' + encodeURIComponent(location || ''));
+                const d = await r.json();
+                if (d.quota === null) {
+                    this.quotaText = 'Sisa kuota: tidak dibatasi (' + d.count + ' terdaftar)';
+                    this.quotaError = false;
+                } else {
+                    const sisa = d.remaining;
+                    this.quotaText = 'Sisa kuota: ' + sisa + ' dari ' + d.quota + ' slot';
+                    this.quotaError = sisa <= 0;
+                }
+            } catch (e) {
+                this.quotaText = '';
+            }
+        }
+    }));
+});
+</script>
+@endpush
 @endsection

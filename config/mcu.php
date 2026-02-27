@@ -43,6 +43,9 @@ return [
         'phone_number' => env('WHATSAPP_PHONE_NUMBER'),
     ],
 
+    // Kuota per lokasi per hari (null = tidak dibatasi)
+    'quota_per_location_per_day' => env('MCU_QUOTA_PER_LOCATION_PER_DAY') ? (int) env('MCU_QUOTA_PER_LOCATION_PER_DAY') : null,
+
     // Pagination
     'pagination' => [
         'per_page' => 15,

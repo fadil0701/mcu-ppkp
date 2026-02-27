@@ -112,6 +112,54 @@ class Schedule extends Model
     }
 
     /**
+     * Hitung jumlah jadwal aktif (Terjadwal/Selesai) per tanggal & lokasi.
+     * Untuk cek kuota sebelum assign nomor antrian.
+     */
+    public static function countForDateAndLocation($date, string $location, ?int $excludeScheduleId = null): int
+    {
+        $query = static::query()
+            ->whereDate('tanggal_pemeriksaan', Carbon::parse($date)->format('Y-m-d'))
+            ->where('lokasi_pemeriksaan', $location)
+            ->whereIn('status', ['Terjadwal', 'Selesai']);
+
+        if ($excludeScheduleId) {
+            $query->where('id', '!=', $excludeScheduleId);
+        }
+
+        return $query->count();
+    }
+
+    /**
+     * Generate nomor antrian berikutnya untuk tanggal & lokasi.
+     * Nomor antrian mereset setiap hari per lokasi.
+     * Hanya menghitung jadwal Terjadwal dan Selesai.
+     */
+    public static function getNextQueueNumber($date, string $location, ?int $excludeScheduleId = null): int
+    {
+        $max = static::query()
+            ->whereDate('tanggal_pemeriksaan', Carbon::parse($date)->format('Y-m-d'))
+            ->where('lokasi_pemeriksaan', $location)
+            ->whereIn('status', ['Terjadwal', 'Selesai'])
+            ->when($excludeScheduleId, fn ($q) => $q->where('id', '!=', $excludeScheduleId))
+            ->max('queue_number');
+
+        return ((int) $max) + 1;
+    }
+
+    /**
+     * Cek apakah masih ada slot kuota tersedia untuk tanggal & lokasi.
+     */
+    public static function hasQuotaAvailable($date, string $location, ?int $excludeScheduleId = null): bool
+    {
+        $quota = config('mcu.quota_per_location_per_day');
+        if ($quota === null || $quota <= 0) {
+            return true;
+        }
+        $count = static::countForDateAndLocation($date, $location, $excludeScheduleId);
+        return $count < $quota;
+    }
+
+    /**
      * Boot the model and clear cache on changes
      */
     protected static function booted(): void
