@@ -31,10 +31,10 @@
                 <tr class="border-b border-gray-200 dark:border-gray-800">
                     <th class="pb-3 text-left font-medium text-gray-700 dark:text-gray-300">Tanggal</th>
                     <th class="pb-3 text-left font-medium text-gray-700 dark:text-gray-300">Peserta</th>
-                    <th class="pb-3 text-left font-medium text-gray-700 dark:text-gray-300">Diagnosis</th>
+
                     <th class="pb-3 text-left font-medium text-gray-700 dark:text-gray-300">Status Kesehatan</th>
                     <th class="pb-3 text-left font-medium text-gray-700 dark:text-gray-300">Publikasi</th>
-                    <th class="pb-3 text-left font-medium text-gray-700 dark:text-gray-300">Aksi</th>
+                    <th class="pb-3 text-center font-medium text-gray-700 dark:text-gray-300">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -42,14 +42,13 @@
                     <tr class="border-b border-gray-100 dark:border-gray-800">
                         <td class="py-3">{{ $r->tanggal_pemeriksaan?->format('d/m/Y') }}</td>
                         <td class="py-3 font-medium text-gray-800 dark:text-white/90">{{ $r->participant?->nama_lengkap ?? $r->participant_id }}</td>
-                        <td class="py-3 max-w-xs truncate" title="{{ $r->diagnosis }}">{{ Str::limit($r->diagnosis, 40) ?: '-' }}</td>
                         <td class="py-3">
                             <span class="inline-flex rounded-full px-2.5 py-0.5 text-theme-xs font-medium
                                 {{ $r->status_kesehatan === 'Sehat' ? 'bg-success-100 text-success-700 dark:bg-success-500/20' : ($r->status_kesehatan === 'Tidak Sehat' ? 'bg-error-100 text-error-700 dark:bg-error-500/20' : 'bg-warning-100 text-warning-700 dark:bg-warning-500/20') }}">{{ $r->status_kesehatan }}</span>
                         </td>
                         <td class="py-3">{{ $r->is_published ? 'Ya' : 'Tidak' }}</td>
                         <td class="py-3">
-                            <div class="flex flex-wrap items-center gap-2">
+                            <div class="flex flex-wrap items-center justify-center gap-2">
                                 @if($r->participant?->email)
                                 <form method="POST" action="{{ route('admin.mcu-results.send-email', $r) }}" class="inline">
                                     @csrf

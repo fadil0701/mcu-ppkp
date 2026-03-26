@@ -144,15 +144,17 @@
     <x-common.component-card title="Hasil MCU Terbaru">
         @if($mcuResults->count() > 0)
             @foreach($mcuResults->take(3) as $result)
-                @php $dx = $result->diagnosis_text ?? null; @endphp
+                @php $files = $result->file_hasil_files ?? ($result->file_hasil ? [$result->file_hasil] : []); $fileCount = count($files); @endphp
                 <div class="flex items-center gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-800 mb-3">
                     <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-success-100 text-success-600 dark:bg-success-500/20 dark:text-success-400">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     </div>
                     <div class="min-w-0 flex-1">
                         <p class="font-medium text-gray-800 dark:text-white/90">{{ $result->tanggal_pemeriksaan_formatted ?? $result->tanggal_pemeriksaan?->format('d/m/Y') }}</p>
-                        <p class="text-theme-sm text-gray-500 dark:text-gray-400">{{ $dx && $dx !== '-' ? Str::limit($dx, 40) : 'Tidak ada diagnosis' }}</p>
-                        <span class="inline-flex rounded-full px-2 py-0.5 text-theme-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">{{ $result->status_kesehatan }}</span>
+                        <p class="text-theme-sm text-gray-500 dark:text-gray-400">{{ $result->hasFile() ? ($fileCount > 1 ? $fileCount . ' dokumen tersedia' : 'Dokumen tersedia') : 'Menunggu upload' }}</p>
+                        @if($result->hasFile())
+                            <a href="{{ route('client.results.downloadAll', $result) }}" class="inline-flex items-center gap-1 text-theme-xs font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">Download</a>
+                        @endif
                     </div>
                 </div>
             @endforeach

@@ -180,6 +180,7 @@
             <div class="card-body">
                 @if($mcuResults->count() > 0)
                     @foreach($mcuResults->take(3) as $result)
+                        @php $files = $result->file_hasil_files ?? ($result->file_hasil ? [$result->file_hasil] : []); $fileCount = count($files); @endphp
                         <div class="d-flex align-items-center mb-3 p-3 border rounded">
                             <div class="flex-shrink-0">
                                 <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;"><i class="fas fa-file-medical"></i></div>
@@ -187,10 +188,15 @@
                             <div class="flex-grow-1 ms-3">
                                 <h6 class="mb-1">{{ $result->tanggal_pemeriksaan_formatted }}</h6>
                                 <p class="text-muted mb-1">
-                                    @php $dx = $result->diagnosis_text; @endphp
-                                    @if($dx && $dx !== '-'){{ Str::limit($dx, 30) }}@else Tidak ada diagnosis @endif
+                                    @if($result->hasFile())
+                                        {{ $fileCount > 1 ? $fileCount . ' dokumen tersedia' : 'Dokumen tersedia' }}
+                                    @else
+                                        Menunggu upload
+                                    @endif
                                 </p>
-                                <span class="badge bg-{{ $result->status_kesehatan_color }}">{{ $result->status_kesehatan }}</span>
+                                @if($result->hasFile())
+                                    <a href="{{ route('client.results.downloadAll', $result) }}" class="btn btn-sm btn-outline-success">Download</a>
+                                @endif
                             </div>
                         </div>
                     @endforeach

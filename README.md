@@ -67,7 +67,7 @@ npm run dev  # untuk hot reload CSS/JS
 
 ## 🛠️ Teknologi
 
-- **Backend**: Laravel 12 (PHP 8.2+)
+- **Backend**: Laravel 12 (PHP 8.3+)
 - **Admin Panel**: Blade + TailAdmin
 - **Frontend**: Tailwind CSS, Alpine.js, Vite
 - **Database**: MySQL 8.0+

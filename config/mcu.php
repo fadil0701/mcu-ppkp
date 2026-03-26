@@ -63,4 +63,18 @@ return [
         'whatsapp_enabled' => true,
         'reminder_days_before' => [7, 3, 1], // days before MCU
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Menu Sidebar - Fitur yang dapat diaktifkan/nonaktifkan
+    |--------------------------------------------------------------------------
+    |
+    | Set true untuk menampilkan menu di sidebar. Set false untuk menyembunyikan.
+    | Route tetap dapat diakses langsung via URL meskipun menu disembunyikan.
+    |
+    */
+    'menu' => [
+        // Master Data: Diagnosis & Dokter Spesialis (untuk form Hasil MCU detail)
+        'master_data_enabled' => env('MCU_MENU_MASTER_DATA_ENABLED', false),
+    ],
 ];

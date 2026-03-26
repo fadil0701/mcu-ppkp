@@ -28,14 +28,17 @@ class MenuHelper
                 ],
             ];
             if (Auth::user()->hasRole('super_admin')) {
-                $items[] = [
-                    'name' => 'Master Data',
-                    'icon' => 'tables',
-                    'subItems' => [
-                        ['name' => 'Diagnosis', 'path' => route('admin.diagnoses.index')],
-                        ['name' => 'Dokter Spesialis', 'path' => route('admin.specialist-doctors.index')],
-                    ],
-                ];
+                // Master Data (Diagnosis, Dokter Spesialis) - nonaktif default, aktifkan via MCU_MENU_MASTER_DATA_ENABLED=true di .env
+                if (config('mcu.menu.master_data_enabled', false)) {
+                    $items[] = [
+                        'name' => 'Master Data',
+                        'icon' => 'tables',
+                        'subItems' => [
+                            ['name' => 'Diagnosis', 'path' => route('admin.diagnoses.index')],
+                            ['name' => 'Dokter Spesialis', 'path' => route('admin.specialist-doctors.index')],
+                        ],
+                    ];
+                }
                 $items[] = [
                     'icon' => 'calendar',
                     'name' => 'Permintaan Reschedule',
